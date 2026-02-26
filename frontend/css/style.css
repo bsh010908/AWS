@@ -1,0 +1,342 @@
+:root{
+  --bg1:#f6f7f9;
+  --bg2:#e9ecef;
+  --card:rgba(255,255,255,0.92);
+  --text:#111827;
+  --muted:#6b7280;
+  --line:rgba(17,24,39,0.10);
+
+  /* 포인트: 딥 네이비 (블루톤 제거) */
+  --primary:#0f172a;
+  --primary2:#111827;
+
+  /* UI 디테일 */
+  --radius:22px;
+  --radius-input:14px;
+  --shadow: 0 28px 70px rgba(0,0,0,0.10);
+  --shadow-soft: 0 12px 26px rgba(0,0,0,0.08);
+}
+
+*{ box-sizing:border-box; }
+html,body{ height:100%; }
+
+body{
+  margin:0;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans KR", sans-serif;
+  color:var(--text);
+  background:
+    radial-gradient(900px 520px at 50% -8%, var(--bg2) 0%, var(--bg1) 62%, #ffffff 100%);
+}
+
+/* 살짝 “사이트” 느낌 나는 노이즈/빛 번짐 */
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  background:
+    radial-gradient(600px 300px at 12% 10%, rgba(0,0,0,0.03), transparent 60%),
+    radial-gradient(700px 360px at 88% 18%, rgba(0,0,0,0.03), transparent 62%),
+    linear-gradient(180deg, rgba(255,255,255,0.60), rgba(255,255,255,0.0) 35%);
+}
+
+.page-wrapper{
+  min-height:100%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:56px 18px;
+}
+
+/* 카드 */
+.login-card{
+  width:min(560px, 100%);
+  padding:48px 48px 40px;
+  border-radius:var(--radius);
+  background:var(--card);
+  border:1px solid var(--line);
+  backdrop-filter: blur(14px);
+  box-shadow: var(--shadow);
+  position:relative;
+}
+
+/* 카드 상단 얇은 라인 */
+.login-card::before{
+  content:"";
+  position:absolute;
+  left:18px; right:18px; top:14px;
+  height:1px;
+  background: linear-gradient(90deg, transparent, rgba(15,23,42,0.10), transparent);
+}
+
+/* 브랜드: 가로형이 “실제 사이트” 느낌 */
+.brand{
+  position:relative;
+  text-align:center;
+  margin-bottom:32px;
+}
+
+
+/* 텍스트도 중앙 정렬로 */
+.brand-text{
+  text-align:center;
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+
+.logo-img{
+  position:absolute;
+  left:0;
+  top:50%;
+  transform:translateY(-50%);
+  width:100px;
+  height:auto;
+  opacity:0.95;
+}
+
+.brand-title{
+  margin:0;
+  font-size:30px;
+  font-weight:800;
+  letter-spacing:-0.6px;
+}
+
+.brand-sub{
+  margin-top:6px;
+  font-size:14px;
+  color:var(--muted);
+}
+
+/* 폼 */
+.form-section{
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+}
+
+/* 입력: 실제 서비스 느낌(살짝 회색 배경 + 포커스) */
+.form-section input{
+  height:54px;
+  width:100%;
+  padding:0 16px;
+  border-radius:var(--radius-input);
+  border:1px solid rgba(17,24,39,0.10);
+  background: rgba(255,255,255,0.90);
+  font-size:15px;
+  outline:none;
+  transition: border-color .15s ease, box-shadow .15s ease, background .15s ease;
+}
+
+.form-section input::placeholder{
+  color:#9ca3af;
+}
+
+.form-section input:focus{
+  border-color:rgba(15,23,42,0.32);
+  box-shadow: 0 0 0 4px rgba(15,23,42,0.08);
+  background:#fff;
+}
+
+/* 버튼: 과한 그라데이션/색감 없이 “프리미엄” */
+.btn-main{
+  height:56px;
+  border:0;
+  border-radius:16px;
+  background: linear-gradient(180deg, var(--primary) 0%, var(--primary2) 100%);
+  color:#fff;
+  font-size:16px;
+  font-weight:800;
+  cursor:pointer;
+  margin-top:6px;
+  box-shadow: var(--shadow-soft);
+  transition: transform .12s ease, filter .12s ease, box-shadow .12s ease;
+}
+
+.btn-main:hover{
+  filter:brightness(1.06);
+  box-shadow: 0 16px 34px rgba(0,0,0,0.12);
+}
+
+.btn-main:active{
+  transform: translateY(1px);
+}
+
+/* 회원가입: 링크처럼 */
+.btn-sub{
+  border:0;
+  background:transparent;
+  color:#374151;
+  font-weight:700;
+  cursor:pointer;
+  padding:12px 0 6px;
+}
+
+.btn-sub:hover{
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+/* 모바일 */
+@media (max-width:520px){
+  .login-card{ padding:36px 22px 28px; }
+  .brand{ justify-content:flex-start; }
+  .brand-title{ font-size:24px; }
+  .logo-img{ width:40px; height:40px; }
+}
+
+/* ===== Landing Only ===== */
+
+.landing{
+  min-height:100vh;
+  padding:28px 28px 44px;
+}
+
+.topbar{
+  max-width:1100px;
+  margin:0 auto;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:10px 6px;
+}
+
+.brand-mini{
+  font-size:18px;
+  font-weight:800;
+  letter-spacing:-0.3px;
+  color:var(--text);
+  opacity:0.85;
+}
+
+/* 컨텐츠 폭 잡아주기 */
+.container{
+  max-width:1100px;
+  margin:0 auto;
+  padding:48px 6px 0;
+}
+
+/* 히어로를 가운데로 “내려”서 밸런스 */
+.hero{
+  text-align:center;
+  padding:60px 0 40px;
+}
+
+.hero h1{
+  margin:0 0 16px;
+  font-size:52px;
+  line-height:1.18;
+  letter-spacing:-1px;
+}
+
+.hero p{
+  margin:0 auto;
+  max-width:680px;
+  font-size:18px;
+  color:var(--muted);
+  line-height:1.6;
+}
+
+/* CTA 버튼 */
+.cta{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:16px;
+  margin-top:26px;
+}
+
+.btn-primary{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  height:52px;
+  padding:0 22px;
+  border-radius:14px;
+  background: linear-gradient(180deg, var(--primary) 0%, var(--primary2) 100%);
+  color:#fff;
+  font-weight:800;
+  text-decoration:none;
+  box-shadow: var(--shadow-soft);
+}
+
+.btn-primary:hover{ filter:brightness(1.05); }
+
+.btn-link{
+  color:var(--text);
+  text-decoration:none;
+  font-weight:800;
+  opacity:0.75;
+}
+
+.btn-link:hover{
+  opacity:1;
+  text-decoration:underline;
+  text-underline-offset:4px;
+}
+
+/* 상단 로그인 버튼 */
+.btn-outline{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  height:42px;
+  padding:0 16px;
+  border-radius:12px;
+  border:1px solid var(--line);
+  color:var(--text);
+  text-decoration:none;
+  font-weight:800;
+  background: rgba(255,255,255,0.7);
+  backdrop-filter: blur(10px);
+}
+
+.btn-outline:hover{
+  background: rgba(255,255,255,0.9);
+}
+
+/* Features: 아래로 너무 떨어지지 않게, 카드로 정리 */
+.features{
+  display:grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap:18px;
+  padding:18px 0 0;
+}
+
+.feature-card{
+  background: rgba(255,255,255,0.75);
+  border:1px solid var(--line);
+  border-radius:18px;
+  padding:18px 18px 16px;
+  box-shadow: 0 10px 26px rgba(0,0,0,0.05);
+  text-align:left;
+}
+
+.feature-title{
+  font-weight:900;
+  letter-spacing:-0.3px;
+  margin-bottom:10px;
+}
+
+.feature-desc{
+  color:var(--muted);
+  line-height:1.55;
+  font-size:14px;
+}
+
+/* 반응형 */
+@media (max-width: 900px){
+  .hero h1{ font-size:42px; }
+  .features{ grid-template-columns: 1fr; }
+  .feature-card{ text-align:left; }
+}
+
+@media (max-width: 520px){
+  .landing{ padding:18px 16px 32px; }
+  .container{ padding-top:34px; }
+  .hero{ padding:44px 0 28px; }
+  .hero h1{ font-size:34px; }
+  .hero p{ font-size:15px; }
+  .cta{ flex-direction:column; gap:12px; }
+  .btn-primary{ width:100%; }
+}

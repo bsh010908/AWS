@@ -9,22 +9,22 @@ from ..db import models
 
 router = APIRouter()
 
-
 @router.post("/signup", response_model=schemas.UserResponse)
 def signup(user: schemas.UserCreate, db: Session = Depends(get_db)):
     return user_service.create_user(user, db)
 
-
 @router.post("/login")
-def login(user: schemas.UserCreate, db: Session = Depends(get_db)):
+def login(user: schemas.UserLogin, db: Session = Depends(get_db)):
     return user_service.login_user(user, db)
-
 
 @router.get("/me")
 def read_me(current_user: models.User = Depends(get_current_user)):
     return {
         "user_id": current_user.user_id,
+        "username": current_user.username,
         "email": current_user.email,
         "name": current_user.name,
-        "role": current_user.role
+        "role": current_user.role,
+        "plan": current_user.plan,
+        "subscription_status": current_user.subscription_status,
     }

@@ -1,0 +1,66 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>회원가입 - AWS Ledger</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
+    <div class="page-wrapper">
+      <div class="login-card">
+        <div class="brand">
+          <div class="logo-circle">AL</div>
+          <h1>회원가입</h1>
+        </div>
+
+        <!-- 🔥 form 추가 -->
+        <form id="signupForm" class="form-section">
+          <input
+            type="text"
+            id="username"
+            placeholder="로그인 아이디"
+            required
+          />
+
+          <input
+            type="email"
+            id="email"
+            placeholder="이메일"
+            required
+          />
+
+          <input
+            type="text"
+            id="name"
+            placeholder="이름"
+            required
+          />
+
+          <input
+            type="password"
+            id="password"
+            placeholder="비밀번호"
+            required
+          />
+
+          <!-- 🔥 submit 타입 -->
+          <button type="submit" class="btn-main">
+            가입하기
+          </button>
+
+          <!-- 🔥 일반 버튼으로 변경 -->
+          <button
+            type="button"
+            onclick="location.href='index.html'"
+            class="btn-sub"
+          >
+            로그인으로 돌아가기
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <script src="js/signup.js"></script>
+  </body>
+</html>
