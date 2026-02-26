@@ -1,55 +1,56 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
-<head>
-  <meta charset="UTF-8">
-  <title>AWS Ledger</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="css/style.css">
-</head>
-<body>
-  <div class="page-wrapper">
-    <div class="login-card">
+  <head>
+    <meta charset="UTF-8" />
+    <title>AWS Ledger</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
+    <div class="page-wrapper">
+      <div class="login-card">
 
-      <!-- 🔥 브랜드 영역 -->
-<div class="brand horizontal">
-  <div class="brand-text">
-    <h1 class="brand-title">AWS Ledger</h1>
-    <p class="brand-sub">영수증 OCR로 자동 가계부 정리</p>
-  </div>
-</div>
+        <!-- 브랜드 영역 -->
+        <div class="brand horizontal">
+          <div class="brand-text">
+            <h1 class="brand-title">AWS Ledger</h1>
+            <p class="brand-sub">영수증 OCR로 자동 가계부 정리</p>
+          </div>
+        </div>
 
-      <!-- 🔥 로그인 폼 -->
-      <form id="loginForm" class="form-section">
-        <input
-          type="text"
-          id="username"
-          placeholder="아이디"
-          required
-        />
+        <!-- 로그인 폼 -->
+        <form id="loginForm" class="form-section">
+          <input
+            type="text"
+            id="username"
+            placeholder="아이디"
+            required
+          />
 
-        <input
-          type="password"
-          id="password"
-          placeholder="비밀번호"
-          required
-        />
+          <input
+            type="password"
+            id="password"
+            placeholder="비밀번호"
+            required
+          />
 
-        <button type="submit" class="btn-main">
-          로그인
-        </button>
+          <!-- 🔥 submit으로 변경 -->
+          <button type="submit" class="btn-main">
+            로그인
+          </button>
 
-        <button
-          type="button"
-          id="goSignupBtn"
-          class="btn-sub"
-        >
-          회원가입
-        </button>
-      </form>
+          <button
+            type="button"
+            id="goSignupBtn"
+            class="btn-sub"
+          >
+            회원가입
+          </button>
+        </form>
 
+      </div>
     </div>
-  </div>
 
-  <script src="js/auth.js"></script>
-</body>
+    <script src="js/auth.js"></script>
+  </body>
 </html>
