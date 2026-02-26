@@ -14,7 +14,7 @@ document
     }
 
     try {
-      const res = await fetch("http://localhost:8000/signup", {
+      const res = await fetch("http://localhost:8001/signup", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

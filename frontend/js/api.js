@@ -1,7 +1,7 @@
-const API_BASE = "http://localhost:8000";
+const AUTH_BASE = "http://localhost:8001";
+const LEDGER_BASE = "http://localhost:8002";
 
-export async function apiRequest(endpoint, options = {}) {
-
+export async function apiRequest(base, endpoint, options = {}) {
   const token = localStorage.getItem("token");
 
   const headers = {
@@ -13,7 +13,7 @@ export async function apiRequest(endpoint, options = {}) {
     headers["Authorization"] = `Bearer ${token}`;
   }
 
-  const response = await fetch(`${API_BASE}${endpoint}`, {
+  const response = await fetch(`${base}${endpoint}`, {
     ...options,
     headers
   });
@@ -26,3 +26,5 @@ export async function apiRequest(endpoint, options = {}) {
 
   return data;
 }
+
+export { AUTH_BASE, LEDGER_BASE };
