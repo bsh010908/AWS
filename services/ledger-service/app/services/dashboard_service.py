@@ -6,11 +6,8 @@ from app.models.transaction import Transaction
 from app.models.category import Category
 
 
-def _get_month_range():
-    now = datetime.now()
-    year = now.year
-    month = now.month
-
+# 🔹 공통 월 범위 계산
+def _build_month_range(year: int, month: int):
     start_date = datetime(year, month, 1)
 
     if month == 12:
@@ -18,15 +15,18 @@ def _get_month_range():
     else:
         end_date = datetime(year, month + 1, 1)
 
-    return year, month, start_date, end_date
+    return start_date, end_date
 
 
-def get_monthly_summary(db: Session, current_user: dict):
+# ===============================
+# 월 요약
+# ===============================
+def get_monthly_summary(db: Session, current_user: dict, year: int, month: int):
 
     user_id = current_user["user_id"]
     plan = current_user["plan"]
 
-    year, month, start_date, end_date = _get_month_range()
+    start_date, end_date = _build_month_range(year, month)
 
     current_summary = (
         db.query(
@@ -42,7 +42,7 @@ def get_monthly_summary(db: Session, current_user: dict):
     top_category = (
         db.query(
             Category.name.label("category"),
-            func.sum(Transaction.amount).label("total"),
+            func.coalesce(func.sum(Transaction.amount), 0).label("total"),
         )
         .join(Transaction, Transaction.category_id == Category.category_id)
         .filter(Transaction.user_id == user_id)
@@ -57,10 +57,11 @@ def get_monthly_summary(db: Session, current_user: dict):
         "year": year,
         "month": month,
         "total_amount": current_summary.total,
-        "transaction_count": current_summary.count,
+        "receipt_count": current_summary.count,
         "top_category": top_category.category if top_category else None,
     }
 
+    # PRO 사용자 비교 기능
     if plan == "PRO":
 
         if month == 1:
@@ -70,12 +71,7 @@ def get_monthly_summary(db: Session, current_user: dict):
             prev_year = year
             prev_month = month - 1
 
-        prev_start = datetime(prev_year, prev_month, 1)
-
-        if prev_month == 12:
-            prev_end = datetime(prev_year + 1, 1, 1)
-        else:
-            prev_end = datetime(prev_year, prev_month + 1, 1)
+        prev_start, prev_end = _build_month_range(prev_year, prev_month)
 
         prev_total = (
             db.query(func.coalesce(func.sum(Transaction.amount), 0))
@@ -103,16 +99,19 @@ def get_monthly_summary(db: Session, current_user: dict):
     return response
 
 
-def get_category_stats(db: Session, current_user: dict):
+# ===============================
+# 카테고리 통계
+# ===============================
+def get_category_stats(db: Session, current_user: dict, year: int, month: int):
 
     user_id = current_user["user_id"]
 
-    _, _, start_date, end_date = _get_month_range()
+    start_date, end_date = _build_month_range(year, month)
 
     results = (
         db.query(
             Category.name.label("category"),
-            func.sum(Transaction.amount).label("total"),
+            func.coalesce(func.sum(Transaction.amount), 0).label("total"),
         )
         .join(Transaction, Transaction.category_id == Category.category_id)
         .filter(Transaction.user_id == user_id)
@@ -128,19 +127,23 @@ def get_category_stats(db: Session, current_user: dict):
             "total_amount": row.total,
         }
         for row in results
+        if row.total > 0
     ]
 
 
-def get_daily_stats(db: Session, current_user: dict):
+# ===============================
+# 일별 통계
+# ===============================
+def get_daily_stats(db: Session, current_user: dict, year: int, month: int):
 
     user_id = current_user["user_id"]
 
-    _, _, start_date, end_date = _get_month_range()
+    start_date, end_date = _build_month_range(year, month)
 
     results = (
         db.query(
             func.date(Transaction.occurred_at).label("date"),
-            func.sum(Transaction.amount).label("total"),
+            func.coalesce(func.sum(Transaction.amount), 0).label("total"),
         )
         .filter(Transaction.user_id == user_id)
         .filter(Transaction.occurred_at >= start_date)
@@ -159,6 +162,9 @@ def get_daily_stats(db: Session, current_user: dict):
     ]
 
 
+# ===============================
+# 최근 거래
+# ===============================
 def get_recent_transactions(
     db: Session,
     current_user: dict,
