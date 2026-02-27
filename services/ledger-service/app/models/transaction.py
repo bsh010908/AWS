@@ -1,7 +1,8 @@
 from sqlalchemy import Column, BigInteger, Integer, TIMESTAMP, String, ForeignKey
 from sqlalchemy.orm import relationship
 from app.db.session import Base
-
+from sqlalchemy.sql import func
+from sqlalchemy import DateTime
 
 class Transaction(Base):
     __tablename__ = "transactions"
@@ -22,7 +23,13 @@ class Transaction(Base):
 
     memo = Column(String(255))
 
-    created_at = Column(TIMESTAMP)
+
+
+    created_at = Column(
+        DateTime,
+        server_default=func.now(),
+        nullable=False
+    )
 
     # 관계 설정
     category = relationship(

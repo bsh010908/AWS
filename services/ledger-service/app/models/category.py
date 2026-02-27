@@ -1,5 +1,6 @@
-from sqlalchemy import Column, BigInteger, String, TIMESTAMP, Boolean, ForeignKey
+from sqlalchemy import Column, BigInteger, String, Boolean, DateTime
 from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
 from app.db.session import Base
 
 
@@ -14,8 +15,8 @@ class Category(Base):
 
     is_active = Column(Boolean, default=True)
 
-    created_at = Column(TIMESTAMP)
-    updated_at = Column(TIMESTAMP)
+    created_at = Column(DateTime, server_default=func.now(), nullable=False)
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now(), nullable=False)
 
     # 관계 설정
     transactions = relationship(
@@ -23,3 +24,4 @@ class Category(Base):
         back_populates="category",
         cascade="all, delete-orphan"
     )
+
