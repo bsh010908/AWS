@@ -12,14 +12,17 @@ ALGORITHM = os.getenv("ALGORITHM", "HS256")
 security = HTTPBearer()
 
 
-def get_current_user_id(
+def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(security),
 ):
     token = credentials.credentials
 
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        user_id: int = payload.get("sub")
+
+        user_id = payload.get("sub")
+        plan = payload.get("plan")
+        role = payload.get("role")
 
         if user_id is None:
             raise HTTPException(
@@ -27,7 +30,11 @@ def get_current_user_id(
                 detail="Invalid token",
             )
 
-        return user_id
+        return {
+            "user_id": int(user_id),
+            "plan": plan,
+            "role": role,
+        }
 
     except jwt.PyJWTError:
         raise HTTPException(

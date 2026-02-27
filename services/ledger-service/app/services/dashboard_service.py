@@ -6,7 +6,6 @@ from app.models.transaction import Transaction
 from app.models.category import Category
 
 
-# 🔹 공통 월 범위 계산 함수
 def _get_month_range():
     now = datetime.now()
     year = now.year
@@ -22,12 +21,14 @@ def _get_month_range():
     return year, month, start_date, end_date
 
 
-# 🔹 1️⃣ 월간 요약
-def get_monthly_summary(db: Session, user_id: int):
+def get_monthly_summary(db: Session, current_user: dict):
+
+    user_id = current_user["user_id"]
+    plan = current_user["plan"]
 
     year, month, start_date, end_date = _get_month_range()
 
-    summary = (
+    current_summary = (
         db.query(
             func.coalesce(func.sum(Transaction.amount), 0).label("total"),
             func.count(Transaction.tx_id).label("count"),
@@ -52,17 +53,59 @@ def get_monthly_summary(db: Session, user_id: int):
         .first()
     )
 
-    return {
+    response = {
         "year": year,
         "month": month,
-        "total_amount": summary.total,
-        "transaction_count": summary.count,
+        "total_amount": current_summary.total,
+        "transaction_count": current_summary.count,
         "top_category": top_category.category if top_category else None,
     }
 
+    if plan == "PRO":
 
-# 🔹 2️⃣ 카테고리 통계
-def get_category_stats(db: Session, user_id: int):
+        if month == 1:
+            prev_year = year - 1
+            prev_month = 12
+        else:
+            prev_year = year
+            prev_month = month - 1
+
+        prev_start = datetime(prev_year, prev_month, 1)
+
+        if prev_month == 12:
+            prev_end = datetime(prev_year + 1, 1, 1)
+        else:
+            prev_end = datetime(prev_year, prev_month + 1, 1)
+
+        prev_total = (
+            db.query(func.coalesce(func.sum(Transaction.amount), 0))
+            .filter(Transaction.user_id == user_id)
+            .filter(Transaction.occurred_at >= prev_start)
+            .filter(Transaction.occurred_at < prev_end)
+            .scalar()
+        )
+
+        if prev_total == 0:
+            change_rate = 100 if current_summary.total > 0 else 0
+        else:
+            change_rate = round(
+                ((current_summary.total - prev_total) / prev_total) * 100,
+                1,
+            )
+
+        response.update(
+            {
+                "last_month_total": prev_total,
+                "change_rate": change_rate,
+            }
+        )
+
+    return response
+
+
+def get_category_stats(db: Session, current_user: dict):
+
+    user_id = current_user["user_id"]
 
     _, _, start_date, end_date = _get_month_range()
 
@@ -88,8 +131,9 @@ def get_category_stats(db: Session, user_id: int):
     ]
 
 
-# 🔹 3️⃣ 일별 통계
-def get_daily_stats(db: Session, user_id: int):
+def get_daily_stats(db: Session, current_user: dict):
+
+    user_id = current_user["user_id"]
 
     _, _, start_date, end_date = _get_month_range()
 
@@ -115,8 +159,13 @@ def get_daily_stats(db: Session, user_id: int):
     ]
 
 
-# 🔹 4️⃣ 최근 거래
-def get_recent_transactions(db: Session, user_id: int, limit: int = 5):
+def get_recent_transactions(
+    db: Session,
+    current_user: dict,
+    limit: int = 5,
+):
+
+    user_id = current_user["user_id"]
 
     transactions = (
         db.query(Transaction)
@@ -128,7 +177,7 @@ def get_recent_transactions(db: Session, user_id: int, limit: int = 5):
 
     return [
         {
-            "id": tx.tx_id,  # 모델 필드명에 맞춰 확인
+            "id": tx.tx_id,
             "amount": tx.amount,
             "category": tx.category.name if tx.category else None,
             "occurred_at": tx.occurred_at,

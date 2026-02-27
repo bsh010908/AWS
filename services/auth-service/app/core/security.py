@@ -17,12 +17,11 @@ def create_access_token(data: dict):
     return encoded_jwt
 
 
-
 from fastapi import Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 from ..db.database import SessionLocal
-from ..db import models
+from ..models.user import User
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
@@ -39,7 +38,7 @@ def get_current_user(token: str = Depends(oauth2_scheme)):
         raise HTTPException(status_code=401, detail="토큰이 유효하지 않습니다.")
 
     db = SessionLocal()
-    user = db.query(models.User).filter(models.User.user_id == int(user_id)).first()
+    user = db.query(User).filter(User.user_id == int(user_id)).first()
     db.close()
 
     if user is None:
