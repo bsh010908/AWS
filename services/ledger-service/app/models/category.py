@@ -8,7 +8,7 @@ class Category(Base):
     __tablename__ = "categories"
 
     category_id = Column(BigInteger, primary_key=True, index=True)
-    user_id = Column(BigInteger, nullable=False, index=True)
+    user_id = Column(BigInteger, nullable=True, index=True)
 
     name = Column(String(100), nullable=False)
     type = Column(String(20), nullable=False)  # EXPENSE / INCOME

@@ -3,11 +3,13 @@ from app import models
 from app.routers import dashboard_router
 from app.routers import transaction_router
 from fastapi.middleware.cors import CORSMiddleware
+from app.routers import receipt_router
 
 app = FastAPI()
 
 app.include_router(dashboard_router.router)
 app.include_router(transaction_router.router)
+app.include_router(receipt_router.router)
 
 
 
