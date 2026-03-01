@@ -1,12 +1,15 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import func, desc
 from datetime import datetime
+from calendar import monthrange
 
 from app.models.transaction import Transaction
 from app.models.category import Category
 
 
-# 🔹 공통 월 범위 계산
+# ===============================
+# 공통 월 범위 계산
+# ===============================
 def _build_month_range(year: int, month: int):
     start_date = datetime(year, month, 1)
 
@@ -28,6 +31,7 @@ def get_monthly_summary(db: Session, current_user: dict, year: int, month: int):
 
     start_date, end_date = _build_month_range(year, month)
 
+    # 현재 월 합계 + 건수
     current_summary = (
         db.query(
             func.coalesce(func.sum(Transaction.amount), 0).label("total"),
@@ -39,6 +43,7 @@ def get_monthly_summary(db: Session, current_user: dict, year: int, month: int):
         .first()
     )
 
+    # 최다 소비 카테고리
     top_category = (
         db.query(
             Category.name.label("category"),
@@ -57,11 +62,14 @@ def get_monthly_summary(db: Session, current_user: dict, year: int, month: int):
         "year": year,
         "month": month,
         "total_amount": current_summary.total,
-        "receipt_count": current_summary.count,
-        "top_category": top_category.category if top_category else None,
+        "transaction_count": current_summary.count,
+        "top_category": {
+            "name": top_category.category if top_category else None,
+            "amount": top_category.total if top_category else 0,
+        },
     }
 
-    # PRO 사용자 비교 기능
+    # PRO 사용자 전월 비교
     if plan == "PRO":
 
         if month == 1:
@@ -100,7 +108,7 @@ def get_monthly_summary(db: Session, current_user: dict, year: int, month: int):
 
 
 # ===============================
-# 카테고리 통계
+# 카테고리 통계 (percentage 포함)
 # ===============================
 def get_category_stats(db: Session, current_user: dict, year: int, month: int):
 
@@ -120,10 +128,14 @@ def get_category_stats(db: Session, current_user: dict, year: int, month: int):
         .all()
     )
 
+    total_sum = sum(row.total for row in results)
+
     return [
         {
             "category": row.category,
             "total_amount": row.total,
+            "percentage": round((row.total / total_sum) * 100, 1)
+            if total_sum > 0 else 0,
         }
         for row in results
         if row.total > 0
@@ -131,7 +143,7 @@ def get_category_stats(db: Session, current_user: dict, year: int, month: int):
 
 
 # ===============================
-# 일별 통계
+# 일별 통계 (0 채우기 포함)
 # ===============================
 def get_daily_stats(db: Session, current_user: dict, year: int, month: int):
 
@@ -147,21 +159,30 @@ def get_daily_stats(db: Session, current_user: dict, year: int, month: int):
         .filter(Transaction.occurred_at >= start_date)
         .filter(Transaction.occurred_at < end_date)
         .group_by(func.date(Transaction.occurred_at))
-        .order_by(func.date(Transaction.occurred_at))
         .all()
     )
 
-    return [
-        {
-            "date": str(row.date),
-            "total_amount": row.total,
-        }
-        for row in results
-    ]
+    # dict 변환
+    result_map = {str(row.date): row.total for row in results}
+
+    last_day = monthrange(year, month)[1]
+
+    daily_list = []
+
+    for day in range(1, last_day + 1):
+        date_str = f"{year}-{month:02d}-{day:02d}"
+        daily_list.append(
+            {
+                "date": date_str,
+                "total_amount": result_map.get(date_str, 0),
+            }
+        )
+
+    return daily_list
 
 
 # ===============================
-# 최근 거래 (OCR 반영)
+# 최근 거래
 # ===============================
 def get_recent_transactions(
     db: Session,
@@ -186,8 +207,6 @@ def get_recent_transactions(
             "category": tx.category.name if tx.category else None,
             "occurred_at": tx.occurred_at,
             "memo": tx.memo,
-
-            # OCR 상호명 추가
             "merchant_name": (
                 tx.document.merchant_name
                 if hasattr(tx, "document") and tx.document and tx.document.merchant_name
@@ -196,3 +215,21 @@ def get_recent_transactions(
         }
         for tx in transactions
     ]
+
+
+# ===============================
+# 대시보드 통합
+# ===============================
+def get_dashboard_overview(db: Session, current_user: dict, year: int, month: int):
+
+    summary = get_monthly_summary(db, current_user, year, month)
+    category = get_category_stats(db, current_user, year, month)
+    daily = get_daily_stats(db, current_user, year, month)
+    recent = get_recent_transactions(db, current_user)
+
+    return {
+        "summary": summary,
+        "category_chart": category,
+        "daily_chart": daily,
+        "recent_transactions": recent,
+    }
