@@ -105,7 +105,6 @@ def get_monthly_summary(db: Session, current_user: dict, year: int, month: int):
 def get_category_stats(db: Session, current_user: dict, year: int, month: int):
 
     user_id = current_user["user_id"]
-
     start_date, end_date = _build_month_range(year, month)
 
     results = (
@@ -137,7 +136,6 @@ def get_category_stats(db: Session, current_user: dict, year: int, month: int):
 def get_daily_stats(db: Session, current_user: dict, year: int, month: int):
 
     user_id = current_user["user_id"]
-
     start_date, end_date = _build_month_range(year, month)
 
     results = (
@@ -163,7 +161,7 @@ def get_daily_stats(db: Session, current_user: dict, year: int, month: int):
 
 
 # ===============================
-# 최근 거래
+# 최근 거래 (OCR 반영)
 # ===============================
 def get_recent_transactions(
     db: Session,
@@ -188,6 +186,13 @@ def get_recent_transactions(
             "category": tx.category.name if tx.category else None,
             "occurred_at": tx.occurred_at,
             "memo": tx.memo,
+
+            # OCR 상호명 추가
+            "merchant_name": (
+                tx.document.merchant_name
+                if hasattr(tx, "document") and tx.document and tx.document.merchant_name
+                else None
+            ),
         }
         for tx in transactions
     ]
