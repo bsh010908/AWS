@@ -1,6 +1,7 @@
 import { apiRequest, AUTH_BASE, LEDGER_BASE } from "./api.js";
 
-let chart;
+let categoryChart;
+let dailyChart;
 let selectedYear;
 let selectedMonth;
 
@@ -13,21 +14,17 @@ async function loadDashboard(year, month) {
     selectedYear = year || now.getFullYear();
     selectedMonth = month || now.getMonth() + 1;
 
-    const summary = await apiRequest(
+    // 🔥 이제 overview 한 번만 호출
+    const data = await apiRequest(
       LEDGER_BASE,
-      `/dashboard/summary?year=${selectedYear}&month=${selectedMonth}`
+      `/dashboard/overview?year=${selectedYear}&month=${selectedMonth}`
     );
 
-    const categories = await apiRequest(
-      LEDGER_BASE,
-      `/dashboard/category?year=${selectedYear}&month=${selectedMonth}`
-    );
+    renderSummary(data.summary);
+    renderCategoryChart(data.category_chart);
+    renderDailyChart(data.daily_chart);
+    renderRecent(data.recent_transactions);
 
-    const recent = await apiRequest(LEDGER_BASE, `/dashboard/recent`);
-
-    renderSummary(summary);
-    renderChart(categories);
-    renderRecent(recent);
   } catch (error) {
     console.error(error);
 
@@ -40,28 +37,25 @@ async function loadDashboard(year, month) {
   }
 }
 
-function renderSummary(data) {
+function renderSummary(summary) {
   document.getElementById("totalAmount").innerText =
-    (data.total_amount || 0).toLocaleString() + " 원";
+    (summary.total_amount || 0).toLocaleString() + " 원";
 
   document.getElementById("receiptCount").innerText =
-    (data.receipt_count || 0) + " 건";
+    (summary.transaction_count || 0) + " 건";
 
   document.getElementById("topCategory").innerText =
-    data.top_category || "-";
+    summary.top_category?.name || "-";
 }
 
-function renderChart(categories) {
-  const canvas = document.getElementById("categoryChart");
-  const ctx = canvas.getContext("2d");
+function renderCategoryChart(categories) {
+  const ctx = document.getElementById("categoryChart").getContext("2d");
 
-  if (chart) chart.destroy();
+  if (categoryChart) categoryChart.destroy();
   if (!categories || categories.length === 0) return;
 
-  const amounts = categories.map(c => Number(c.total_amount) || 0);
+  const amounts = categories.map(c => c.total_amount);
   const total = amounts.reduce((a, b) => a + b, 0);
-
-  if (total === 0) return;
 
   const colors = [
     "#111827",
@@ -74,36 +68,28 @@ function renderChart(categories) {
     "#f43f5e",
   ];
 
-  // 🔥 도넛 중앙 텍스트 플러그인
   const centerTextPlugin = {
     id: "centerText",
     beforeDraw(chart) {
       const { width, height } = chart;
       const ctx = chart.ctx;
-
       ctx.save();
       ctx.font = "bold 22px sans-serif";
       ctx.fillStyle = "#111827";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-      ctx.fillText(
-        total.toLocaleString() + "원",
-        width / 2,
-        height / 2
-      );
+      ctx.fillText(total.toLocaleString() + "원", width / 2, height / 2);
       ctx.restore();
     },
   };
 
-  chart = new Chart(ctx, {
+  categoryChart = new Chart(ctx, {
     type: "doughnut",
     data: {
       labels: categories.map(c => c.category),
       datasets: [{
         data: amounts,
-        backgroundColor: categories.map(
-          (_, i) => colors[i % colors.length]
-        ),
+        backgroundColor: categories.map((_, i) => colors[i % colors.length]),
         borderWidth: 0,
       }],
     },
@@ -119,6 +105,40 @@ function renderChart(categories) {
   });
 }
 
+function renderDailyChart(dailyData) {
+  const ctx = document.getElementById("dailyChart").getContext("2d");
+
+  if (dailyChart) dailyChart.destroy();
+  if (!dailyData) return;
+
+  dailyChart = new Chart(ctx, {
+    type: "line",
+    data: {
+      labels: dailyData.map(d => d.date),
+      datasets: [{
+        label: "일별 소비",
+        data: dailyData.map(d => d.total_amount),
+        borderColor: "#111827",
+        backgroundColor: "rgba(17,24,39,0.1)",
+        tension: 0.3,
+        fill: true,
+      }],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+        },
+      },
+    },
+  });
+}
+
 function renderRecent(list) {
   const container = document.getElementById("recentList");
   container.innerHTML = "";
@@ -130,9 +150,7 @@ function renderRecent(list) {
 
   list.forEach((item) => {
     const name =
-      item.merchant ||
-      item.store_name ||
-      item.description ||
+      item.merchant_name ||
       "상호명 없음";
 
     const amount = item.amount || 0;
@@ -148,7 +166,6 @@ function renderRecent(list) {
   });
 }
 
-// 🔥 월 선택 드롭다운 초기화
 function initMonthSelector() {
   const select = document.getElementById("monthSelect");
   if (!select) return;
