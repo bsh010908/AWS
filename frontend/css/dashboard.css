@@ -1,8 +1,8 @@
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-  background: #f3f4f6;
-  color: #111827;
+  background: #f8fafc;
+  color: #1f2937;
 }
 
 .layout {
@@ -10,6 +10,8 @@ body {
   margin: auto;
   padding: 40px;
 }
+
+/* HEADER */
 
 .header {
   display: flex;
@@ -22,27 +24,31 @@ body {
   font-weight: 600;
 }
 
+/* 🔥 세련된 PRO 배지 */
+.plan-badge {
+  padding: 6px 14px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: white;
+  font-size: 12px;
+  font-weight: 500;
+}
+
 .header-right {
   display: flex;
   align-items: center;
   gap: 15px;
 }
 
-.plan-badge {
-  padding: 6px 14px;
-  border-radius: 20px;
-  background: #111827;
-  color: white;
-  font-size: 12px;
-}
-
 .ghost-btn {
-  background: transparent;
-  border: 1px solid #d1d5db;
+  background: white;
+  border: 1px solid #e5e7eb;
   padding: 6px 14px;
   border-radius: 8px;
   cursor: pointer;
 }
+
+/* KPI */
 
 .kpi-section {
   display: grid;
@@ -54,28 +60,26 @@ body {
 .kpi-card {
   background: white;
   padding: 25px;
-  border-radius: 18px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+  border-radius: 16px;
+  border: 1px solid #e5e7eb;
+}
+
+.highlight {
+  background: #f8fafc;
+  border: 1px solid #e0e7ff;
 }
 
 .kpi-card span {
-  font-size: 14px;
+  font-size: 13px;
   color: #6b7280;
 }
 
 .kpi-card h2 {
   margin-top: 10px;
-  font-size: 26px;
+  font-size: 24px;
 }
 
-.highlight {
-  background: #111827;
-  color: white;
-}
-
-.highlight span {
-  color: #9ca3af;
-}
+/* MAIN */
 
 .main-section {
   display: grid;
@@ -84,66 +88,115 @@ body {
   margin-top: 50px;
 }
 
-/* 🔥 차트 카드 스타일 통일 */
 .chart-card {
   background: white;
-  padding: 30px;
-  border-radius: 20px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+  padding: 28px;
+  border-radius: 18px;
+  border: 1px solid #e5e7eb;
 }
 
-/* 🔥 차트 영역 분리 */
 .chart-wrapper {
   position: relative;
-  height: 380px;
+  height: 320px;
   margin-top: 20px;
 }
 
-#categoryChart {
+#categoryChart,
+#dailyChart {
   width: 100% !important;
   height: 100% !important;
 }
 
-.recent-card {
+/* ================= MONTH SELECT CLEAN VERSION ================= */
+
+.chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+}
+
+#monthSelect {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+
+  padding: 8px 36px 8px 14px;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+
+  background-color: #ffffff;
+  font-size: 13px;
+  font-weight: 500;
+  color: #1f2937;
+
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+/* hover */
+#monthSelect:hover {
+  border-color: #c7d2fe;
+  background: #f9fafb;
+}
+
+/* focus */
+#monthSelect:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99,102,241,0.15);
+}
+
+/* 🔥 커스텀 화살표 */
+.chart-header::after {
+  content: "▾";
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+/* BOTTOM */
+
+.bottom-section {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 30px;
+  margin-top: 40px;
+}
+
+.recent-card,
+.predict-card {
   background: white;
-  padding: 30px;
-  border-radius: 20px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+  padding: 28px;
+  border-radius: 18px;
+  border: 1px solid #e5e7eb;
 }
 
 .recent-item {
   display: flex;
   justify-content: space-between;
   padding: 12px 0;
-  border-bottom: 1px solid #f1f1f1;
+  border-bottom: 1px solid #f1f5f9;
 }
 
-.recent-item:last-child {
-  border-bottom: none;
+.month-compare {
+  margin-top: 6px;
+  font-size: 13px;
+  font-weight: 500;
 }
 
-.chart-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 15px;
-}
-
-#monthSelect {
-  padding: 6px 10px;
-  border-radius: 8px;
-  border: 1px solid #d1d5db;
-  background: white;
-  cursor: pointer;
-}
+.month-compare.up { color: #ef4444; }
+.month-compare.down { color: #2563eb; }
+.month-compare.same { color: #6b7280; }
 
 @media (max-width: 900px) {
-  .kpi-section {
-    grid-template-columns: 1fr;
-  }
-
-  .main-section {
+  .kpi-section,
+  .main-section,
+  .bottom-section {
     grid-template-columns: 1fr;
   }
 }
-

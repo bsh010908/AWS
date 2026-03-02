@@ -6,6 +6,9 @@ from calendar import monthrange
 from app.models.transaction import Transaction
 from app.models.category import Category
 
+import os
+from openai import OpenAI
+
 
 # ===============================
 # 공통 월 범위 계산
@@ -43,6 +46,9 @@ def get_monthly_summary(db: Session, current_user: dict, year: int, month: int):
         .first()
     )
 
+    total_amount = current_summary.total or 0
+    tx_count = current_summary.count or 0
+
     # 최다 소비 카테고리
     top_category = (
         db.query(
@@ -58,18 +64,37 @@ def get_monthly_summary(db: Session, current_user: dict, year: int, month: int):
         .first()
     )
 
+    # ===============================
+    # 🔥 평균 / 예상 소비 계산
+    # ===============================
+    now = datetime.now()
+
+    if year == now.year and month == now.month:
+        days_passed = now.day
+    else:
+        days_passed = monthrange(year, month)[1]
+
+    last_day = monthrange(year, month)[1]
+
+    avg_daily = round(total_amount / days_passed, 1) if days_passed > 0 else 0
+    predicted_total = int(avg_daily * last_day)
+
     response = {
         "year": year,
         "month": month,
-        "total_amount": current_summary.total,
-        "transaction_count": current_summary.count,
+        "total_amount": total_amount,
+        "transaction_count": tx_count,
+        "avg_daily_amount": avg_daily,          # 🔥 추가
+        "predicted_total": predicted_total,     # 🔥 추가
         "top_category": {
             "name": top_category.category if top_category else None,
             "amount": top_category.total if top_category else 0,
         },
     }
 
-    # PRO 사용자 전월 비교
+    # ===============================
+    # 🔥 PRO 사용자 전월 비교
+    # ===============================
     if plan == "PRO":
 
         if month == 1:
@@ -89,26 +114,24 @@ def get_monthly_summary(db: Session, current_user: dict, year: int, month: int):
             .scalar()
         )
 
+        diff_amount = total_amount - prev_total
+
         if prev_total == 0:
-            change_rate = 100 if current_summary.total > 0 else 0
+            change_rate = 100.0 if total_amount > 0 else 0.0
         else:
-            change_rate = round(
-                ((current_summary.total - prev_total) / prev_total) * 100,
-                1,
-            )
+            change_rate = round((diff_amount / prev_total) * 100, 1)
 
         response.update(
             {
                 "last_month_total": prev_total,
+                "diff_amount": diff_amount,
                 "change_rate": change_rate,
             }
         )
 
     return response
-
-
 # ===============================
-# 카테고리 통계 (percentage 포함)
+# 카테고리 통계
 # ===============================
 def get_category_stats(db: Session, current_user: dict, year: int, month: int):
 
@@ -143,7 +166,7 @@ def get_category_stats(db: Session, current_user: dict, year: int, month: int):
 
 
 # ===============================
-# 일별 통계 (0 채우기 포함)
+# 일별 통계
 # ===============================
 def get_daily_stats(db: Session, current_user: dict, year: int, month: int):
 
@@ -162,7 +185,6 @@ def get_daily_stats(db: Session, current_user: dict, year: int, month: int):
         .all()
     )
 
-    # dict 변환
     result_map = {str(row.date): row.total for row in results}
 
     last_day = monthrange(year, month)[1]
@@ -184,11 +206,7 @@ def get_daily_stats(db: Session, current_user: dict, year: int, month: int):
 # ===============================
 # 최근 거래
 # ===============================
-def get_recent_transactions(
-    db: Session,
-    current_user: dict,
-    limit: int = 5,
-):
+def get_recent_transactions(db: Session, current_user: dict, limit: int = 5):
 
     user_id = current_user["user_id"]
 
@@ -216,6 +234,41 @@ def get_recent_transactions(
         for tx in transactions
     ]
 
+# ===============================
+# 🔥 AI 소비 인사이트 생성
+# ===============================
+def generate_ai_insight(summary: dict):
+
+    try:
+        client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+        prompt = f"""
+        다음은 한 사용자의 월 소비 데이터입니다.
+
+        총 지출: {summary.get("total_amount")}원
+        전월 대비 증감액: {summary.get("diff_amount", 0)}원
+        증감률: {summary.get("change_rate", 0)}%
+        가장 많이 쓴 카테고리: {summary.get("top_category", {}).get("name")}
+
+        위 데이터를 바탕으로 1~2문장으로 간단한 소비 분석을 작성해주세요.
+        한국어로 자연스럽게 작성해주세요.
+        """
+
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": "당신은 가계부 소비 분석 전문가입니다."},
+                {"role": "user", "content": prompt},
+            ],
+            temperature=0.7,
+            max_tokens=120,
+        )
+
+        return response.choices[0].message.content.strip()
+
+    except Exception as e:
+        print("AI insight error:", e)
+        return None
 
 # ===============================
 # 대시보드 통합
@@ -227,9 +280,16 @@ def get_dashboard_overview(db: Session, current_user: dict, year: int, month: in
     daily = get_daily_stats(db, current_user, year, month)
     recent = get_recent_transactions(db, current_user)
 
+    ai_insight = None
+
+    # 🔥 PRO 사용자만 AI 인사이트 생성
+    if current_user.get("plan") == "PRO":
+        ai_insight = generate_ai_insight(summary)
+
     return {
         "summary": summary,
         "category_chart": category,
         "daily_chart": daily,
         "recent_transactions": recent,
+        "ai_insight": ai_insight,   # 🔥 추가
     }

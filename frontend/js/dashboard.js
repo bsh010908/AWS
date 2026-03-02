@@ -8,88 +8,110 @@ let selectedMonth;
 async function loadDashboard(year, month) {
   try {
     const user = await apiRequest(AUTH_BASE, `/me`);
-    document.getElementById("planBadge").innerText = user.plan || "FREE";
+    document.getElementById("planBadge").innerText = user.plan;
 
     const now = new Date();
     selectedYear = year || now.getFullYear();
     selectedMonth = month || now.getMonth() + 1;
 
-    // 🔥 이제 overview 한 번만 호출
     const data = await apiRequest(
       LEDGER_BASE,
       `/dashboard/overview?year=${selectedYear}&month=${selectedMonth}`
     );
 
-    renderSummary(data.summary);
+    renderSummary(data.summary, user.plan);
     renderCategoryChart(data.category_chart);
     renderDailyChart(data.daily_chart);
     renderRecent(data.recent_transactions);
 
   } catch (error) {
-    console.error(error);
-
     if (error.message.includes("401")) {
       localStorage.removeItem("token");
       window.location.href = "./login.html";
     }
-
-    alert("대시보드 로딩 실패");
   }
 }
 
-function renderSummary(summary) {
+/* ===========================
+   🔥 월 선택 드롭다운 생성
+=========================== */
+
+function initMonthSelector() {
+  const select = document.getElementById("monthSelect");
+  if (!select) return;
+
+  select.innerHTML = "";
+
+  const now = new Date();
+  const currentMonth = now.getMonth() + 1;
+
+  for (let i = 1; i <= 12; i++) {
+    const option = document.createElement("option");
+    option.value = i;
+    option.textContent = `${i}월`;
+
+    if (i === currentMonth) option.selected = true;
+
+    select.appendChild(option);
+  }
+
+  select.addEventListener("change", function () {
+    selectedMonth = Number(this.value);
+    loadDashboard(selectedYear, selectedMonth);
+  });
+}
+
+/* ===========================
+   SUMMARY
+=========================== */
+
+function renderSummary(summary, plan) {
   document.getElementById("totalAmount").innerText =
-    (summary.total_amount || 0).toLocaleString() + " 원";
+    summary.total_amount.toLocaleString() + " 원";
 
   document.getElementById("receiptCount").innerText =
-    (summary.transaction_count || 0) + " 건";
+    summary.transaction_count + " 건";
 
   document.getElementById("topCategory").innerText =
     summary.top_category?.name || "-";
+
+  document.getElementById("predictedAmount").innerText =
+    summary.predicted_total.toLocaleString() + " 원";
+
+  document.getElementById("avgDailyText").innerText =
+    `하루 평균 ${summary.avg_daily_amount.toLocaleString()} 원`;
+
+  const compareEl = document.getElementById("monthCompare");
+
+  if (plan === "PRO" && summary.diff_amount !== undefined) {
+    const diff = summary.diff_amount;
+    const rate = summary.change_rate;
+
+    compareEl.className =
+      "month-compare " + (diff > 0 ? "up" : diff < 0 ? "down" : "same");
+
+    compareEl.innerText =
+      `전월 대비 ${diff > 0 ? "▲" : diff < 0 ? "▼" : "-"} ${Math.abs(diff).toLocaleString()}원 (${rate}%)`;
+  }
 }
+
+/* ===========================
+   CATEGORY CHART
+=========================== */
 
 function renderCategoryChart(categories) {
   const ctx = document.getElementById("categoryChart").getContext("2d");
-
   if (categoryChart) categoryChart.destroy();
-  if (!categories || categories.length === 0) return;
 
-  const amounts = categories.map(c => c.total_amount);
-  const total = amounts.reduce((a, b) => a + b, 0);
-
-  const colors = [
-    "#111827",
-    "#3b82f6",
-    "#10b981",
-    "#f59e0b",
-    "#ef4444",
-    "#8b5cf6",
-    "#14b8a6",
-    "#f43f5e",
-  ];
-
-  const centerTextPlugin = {
-    id: "centerText",
-    beforeDraw(chart) {
-      const { width, height } = chart;
-      const ctx = chart.ctx;
-      ctx.save();
-      ctx.font = "bold 22px sans-serif";
-      ctx.fillStyle = "#111827";
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillText(total.toLocaleString() + "원", width / 2, height / 2);
-      ctx.restore();
-    },
-  };
+  const colors = ["#6366f1", "#8b5cf6", "#3b82f6", "#10b981"];
 
   categoryChart = new Chart(ctx, {
     type: "doughnut",
     data: {
       labels: categories.map(c => c.category),
       datasets: [{
-        data: amounts,
-        backgroundColor: categories.map((_, i) => colors[i % colors.length]),
+        data: categories.map(c => c.total_amount),
+        backgroundColor: colors,
         borderWidth: 0,
       }],
     },
@@ -97,29 +119,26 @@ function renderCategoryChart(categories) {
       responsive: true,
       maintainAspectRatio: false,
       cutout: "65%",
-      plugins: {
-        legend: { position: "bottom" },
-      },
-    },
-    plugins: [centerTextPlugin],
+    }
   });
 }
 
+/* ===========================
+   DAILY CHART
+=========================== */
+
 function renderDailyChart(dailyData) {
   const ctx = document.getElementById("dailyChart").getContext("2d");
-
   if (dailyChart) dailyChart.destroy();
-  if (!dailyData) return;
 
   dailyChart = new Chart(ctx, {
     type: "line",
     data: {
       labels: dailyData.map(d => d.date),
       datasets: [{
-        label: "일별 소비",
         data: dailyData.map(d => d.total_amount),
-        borderColor: "#111827",
-        backgroundColor: "rgba(17,24,39,0.1)",
+        borderColor: "#6366f1",
+        backgroundColor: "rgba(99,102,241,0.1)",
         tension: 0.3,
         fill: true,
       }],
@@ -127,17 +146,13 @@ function renderDailyChart(dailyData) {
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false },
-      },
-      scales: {
-        y: {
-          beginAtZero: true,
-        },
-      },
-    },
+    }
   });
 }
+
+/* ===========================
+   RECENT LIST
+=========================== */
 
 function renderRecent(list) {
   const container = document.getElementById("recentList");
@@ -148,54 +163,27 @@ function renderRecent(list) {
     return;
   }
 
-  list.forEach((item) => {
-    const name =
-      item.merchant_name ||
-      "상호명 없음";
-
-    const amount = item.amount || 0;
-
+  list.forEach(item => {
     const div = document.createElement("div");
     div.className = "recent-item";
     div.innerHTML = `
-      <span>${name}</span>
-      <span>${amount.toLocaleString()} 원</span>
+      <span>${item.merchant_name || "상호명 없음"}</span>
+      <span>${item.amount.toLocaleString()} 원</span>
     `;
-
     container.appendChild(div);
   });
 }
 
-function initMonthSelector() {
-  const select = document.getElementById("monthSelect");
-  if (!select) return;
-
-  const now = new Date();
-  const currentMonth = now.getMonth() + 1;
-
-  for (let i = 1; i <= 12; i++) {
-    const option = document.createElement("option");
-    option.value = i;
-    option.textContent = `${i}월`;
-    if (i === currentMonth) option.selected = true;
-    select.appendChild(option);
-  }
-
-  select.addEventListener("change", (e) => {
-    loadDashboard(selectedYear, Number(e.target.value));
-  });
-}
+/* ===========================
+   INIT
+=========================== */
 
 document.addEventListener("DOMContentLoaded", () => {
-  const logoutBtn = document.getElementById("logoutBtn");
-
-  if (logoutBtn) {
-    logoutBtn.addEventListener("click", () => {
-      localStorage.clear();
-      window.location.href = "./login.html";
-    });
-  }
-
-  initMonthSelector();
+  initMonthSelector();   // 🔥 이거 반드시 필요
   loadDashboard();
+});
+
+window.addEventListener("resize", () => {
+  if (categoryChart) categoryChart.resize();
+  if (dailyChart) dailyChart.resize();
 });

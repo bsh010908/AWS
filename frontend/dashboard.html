@@ -8,19 +8,21 @@
   </head>
   <body>
     <div class="layout">
+
       <div class="header">
         <div class="brand">AWS Ledger</div>
-
         <div class="header-right">
-          <div class="plan-badge" id="planBadge">...</div>
+          <div class="plan-badge" id="planBadge">PRO</div>
           <button class="ghost-btn" id="logoutBtn">로그아웃</button>
         </div>
       </div>
 
+      <!-- KPI -->
       <div class="kpi-section">
         <div class="kpi-card highlight">
           <span>총 지출</span>
           <h2 id="totalAmount">0 원</h2>
+          <div id="monthCompare" class="month-compare"></div>
         </div>
 
         <div class="kpi-card">
@@ -34,38 +36,44 @@
         </div>
       </div>
 
+      <!-- 차트 영역 -->
       <div class="main-section">
-        <!-- 🔥 차트 영역 수정 -->
+
         <div class="chart-card">
-          <!-- 제목 + 월 선택 -->
           <div class="chart-header">
             <h3>카테고리별 소비</h3>
-
-            <!-- 🔥 월 선택 드롭다운 -->
-            <select id="monthSelect">
-              <!-- JS에서 1~12월 자동 생성 -->
-            </select>
+            <select id="monthSelect"></select>
           </div>
-
           <div class="chart-wrapper">
             <canvas id="categoryChart"></canvas>
           </div>
         </div>
 
         <div class="chart-card">
-          <div class="chart-header">
-            <h3>일별 소비</h3>
-          </div>
+          <h3>일별 소비</h3>
           <div class="chart-wrapper">
             <canvas id="dailyChart"></canvas>
           </div>
         </div>
 
+      </div>
+
+      <!-- 하단 -->
+      <div class="bottom-section">
+
         <div class="recent-card">
           <h3>최근 소비</h3>
           <div id="recentList"></div>
         </div>
+
+        <div class="predict-card">
+          <span>이번 달 예상 지출</span>
+          <h2 id="predictedAmount">0 원</h2>
+          <small id="avgDailyText"></small>
+        </div>
+
       </div>
+
     </div>
 
     <script type="module" src="./js/dashboard.js"></script>
