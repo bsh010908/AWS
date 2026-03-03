@@ -24,8 +24,11 @@ document.getElementById("loginForm")
         return;
       }
 
-      localStorage.setItem("token", data.access_token);
-      window.location.href = "dashboard.html";
+      // 🔥 토큰 이름 통일
+      localStorage.setItem("access_token", data.access_token);
+
+      // 🔥 SPA 시작점으로 이동
+      window.location.href = "app.html";
 
     } catch (err) {
       alert("서버 연결 실패");

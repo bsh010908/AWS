@@ -324,6 +324,88 @@ body::before{
   font-size:14px;
 }
 
+/* NAVBAR */
+.navbar {
+  background: white;
+  border-bottom: 1px solid #eee;
+  padding: 15px 0;
+}
+
+.nav-container {
+  max-width: 1100px;
+  margin: auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.nav-links a {
+  margin-left: 20px;
+  text-decoration: none;
+  color: #111;
+}
+
+.btn-outline {
+  padding: 8px 16px;
+  border: 1px solid #111;
+  border-radius: 6px;
+}
+
+/* HERO */
+.hero {
+  text-align: center;
+  padding: 100px 0;
+}
+
+.cta {
+  margin-top: 40px;
+}
+
+.btn-primary {
+  background: #111827;
+  color: white;
+  padding: 12px 24px;
+  border-radius: 8px;
+  text-decoration: none;
+  margin-right: 15px;
+}
+
+.btn-secondary {
+  border: 1px solid #111827;
+  padding: 12px 24px;
+  border-radius: 8px;
+  text-decoration: none;
+}
+
+/* FEATURES */
+.features {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  padding: 60px 0;
+}
+
+.feature-card {
+  background: #f3f4f6;
+  padding: 30px;
+  border-radius: 12px;
+  width: 280px;
+}
+
+/* PRO */
+.pro-section {
+  text-align: center;
+  padding: 80px 0;
+}
+
+/* FOOTER */
+.footer {
+  text-align: center;
+  padding: 30px;
+  background: #111827;
+  color: white;
+}
+
 /* 반응형 */
 @media (max-width: 900px){
   .hero h1{ font-size:42px; }

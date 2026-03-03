@@ -271,7 +271,7 @@ def generate_ai_insight(summary: dict):
         return None
 
 # ===============================
-# 대시보드 통합
+# 대시보드 통합 
 # ===============================
 def get_dashboard_overview(db: Session, current_user: dict, year: int, month: int):
 
@@ -280,16 +280,9 @@ def get_dashboard_overview(db: Session, current_user: dict, year: int, month: in
     daily = get_daily_stats(db, current_user, year, month)
     recent = get_recent_transactions(db, current_user)
 
-    ai_insight = None
-
-    # 🔥 PRO 사용자만 AI 인사이트 생성
-    if current_user.get("plan") == "PRO":
-        ai_insight = generate_ai_insight(summary)
-
     return {
         "summary": summary,
         "category_chart": category,
         "daily_chart": daily,
         "recent_transactions": recent,
-        "ai_insight": ai_insight,   # 🔥 추가
     }

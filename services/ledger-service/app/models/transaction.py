@@ -1,4 +1,4 @@
-from sqlalchemy import Column, BigInteger, Integer, TIMESTAMP, String, ForeignKey
+from sqlalchemy import Column, BigInteger, Integer, TIMESTAMP, String, ForeignKey, Index
 from sqlalchemy.orm import relationship
 from app.db.session import Base
 from sqlalchemy.sql import func
@@ -8,15 +8,18 @@ from sqlalchemy import DateTime
 class Transaction(Base):
     __tablename__ = "transactions"
 
+    __table_args__ = (
+        Index("idx_user_date", "user_id", "occurred_at"),
+    )
+
     tx_id = Column(BigInteger, primary_key=True, index=True)
 
     user_id = Column(BigInteger, nullable=False, index=True)
 
-    # 🔥 Document FK 추가
     document_id = Column(
         BigInteger,
         ForeignKey("documents.document_id"),
-        nullable=True  # OCR 이전 수동 입력 대비
+        nullable=True
     )
 
     category_id = Column(
@@ -37,18 +40,5 @@ class Transaction(Base):
         nullable=False
     )
 
-    # ===============================
-    # 관계 설정
-    # ===============================
-
-    # 카테고리 관계
-    category = relationship(
-        "Category",
-        back_populates="transactions"
-    )
-
-    # 🔥 문서(OCR 결과) 관계
-    document = relationship(
-        "Document",
-        back_populates="transactions"
-    )
+    category = relationship("Category", back_populates="transactions")
+    document = relationship("Document", back_populates="transactions")

@@ -9,7 +9,8 @@ from app.services.dashboard_service import (
     get_category_stats,
     get_daily_stats,
     get_recent_transactions,
-    get_dashboard_overview,   # 🔥 누락됐던 import 추가
+    get_dashboard_overview,
+    generate_ai_insight,   
 )
 from app.core.security import get_current_user
 
@@ -91,12 +92,26 @@ def recent_transactions(
 ):
     return get_recent_transactions(db, current_user)
 
+# ===============================
+# 🔥 AI 인사이트 전용 API
+# ===============================
+@router.get("/ai-insight")
+def get_ai_insight(
+    year: int | None = Query(None),
+    month: int | None = Query(None),
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user),
+):
+    if current_user.get("plan") != "PRO":
+        raise HTTPException(status_code=403, detail="PRO 전용 기능입니다")
 
-# ======================================================
-# 🔥 거래 관련 API는 REST스럽게 분리하는 게 더 좋음
-# prefix="/transactions" 로 따로 빼는 게 이상적
-# 여기서는 유지하되 정리만 함
-# ======================================================
+    year, month = _resolve_year_month(year, month)
+
+    summary = get_monthly_summary(db, current_user, year, month)
+    insight = generate_ai_insight(summary)
+
+    return {"ai_insight": insight}
+
 
 
 # ===============================

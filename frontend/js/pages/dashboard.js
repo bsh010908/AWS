@@ -1,9 +1,103 @@
-import { apiRequest, AUTH_BASE, LEDGER_BASE } from "./api.js";
+import { apiRequest, AUTH_BASE, LEDGER_BASE } from "../api.js";
 
 let categoryChart;
 let dailyChart;
 let selectedYear;
 let selectedMonth;
+
+/* ===========================
+   RENDER
+=========================== */
+
+export async function renderDashboard() {
+  return `
+    <div class="dashboard">
+
+      <div class="header">
+        <div class="header-right">
+          <div class="plan-badge" id="planBadge">-</div>
+        </div>
+      </div>
+
+      <!-- KPI -->
+      <div class="kpi-section">
+        <div class="kpi-card highlight">
+          <span>총 지출</span>
+          <h2 id="totalAmount">0 원</h2>
+          <div id="monthCompare" class="month-compare"></div>
+        </div>
+
+        <div class="kpi-card">
+          <span>이번 달 영수증 수</span>
+          <h2 id="receiptCount">0 건</h2>
+        </div>
+
+        <div class="kpi-card">
+          <span>최대 소비 카테고리</span>
+          <h2 id="topCategory">-</h2>
+        </div>
+      </div>
+
+      <!-- AI 인사이트 (PRO 전용) -->
+      <div class="ai-card">
+        <h3>AI 소비 분석</h3>
+        <p id="aiInsight">-</p>
+      </div>
+
+      <!-- 차트 영역 -->
+      <div class="main-section">
+
+        <div class="chart-card">
+          <div class="chart-header">
+            <h3>카테고리별 소비</h3>
+            <select id="monthSelect"></select>
+          </div>
+          <div class="chart-wrapper">
+            <canvas id="categoryChart"></canvas>
+          </div>
+        </div>
+
+        <div class="chart-card">
+          <h3>일별 소비</h3>
+          <div class="chart-wrapper">
+            <canvas id="dailyChart"></canvas>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- 하단 -->
+      <div class="bottom-section">
+
+        <div class="recent-card">
+          <h3>최근 소비</h3>
+          <div id="recentList"></div>
+        </div>
+
+        <div class="predict-card">
+          <span>이번 달 예상 지출</span>
+          <h2 id="predictedAmount">0 원</h2>
+          <small id="avgDailyText"></small>
+        </div>
+
+      </div>
+
+    </div>
+  `;
+}
+
+/* ===========================
+   AFTER RENDER
+=========================== */
+
+export async function afterRenderDashboard() {
+  initMonthSelector();
+  await loadDashboard();
+}
+
+/* ===========================
+   LOAD DASHBOARD (빠르게)
+=========================== */
 
 async function loadDashboard(year, month) {
   try {
@@ -24,16 +118,48 @@ async function loadDashboard(year, month) {
     renderDailyChart(data.daily_chart);
     renderRecent(data.recent_transactions);
 
+    // 🔥 AI는 따로 비동기 호출
+    if (user.plan === "PRO") {
+      loadAiInsight(selectedYear, selectedMonth);
+    } else {
+      const insightBox = document.getElementById("aiInsight");
+      if (insightBox) {
+        insightBox.innerText = "PRO 플랜에서 이용 가능합니다.";
+      }
+    }
+
   } catch (error) {
     if (error.message.includes("401")) {
-      localStorage.removeItem("token");
-      window.location.href = "./login.html";
+      localStorage.removeItem("access_token");
+      window.location.href = "login.html";
     }
   }
 }
 
 /* ===========================
-   🔥 월 선택 드롭다운 생성
+   🔥 AI INSIGHT (비동기)
+=========================== */
+
+async function loadAiInsight(year, month) {
+  const insightBox = document.getElementById("aiInsight");
+  if (!insightBox) return;
+
+  insightBox.innerText = "AI 분석 생성 중...";
+
+  try {
+    const data = await apiRequest(
+      LEDGER_BASE,
+      `/dashboard/ai-insight?year=${year}&month=${month}`
+    );
+
+    insightBox.innerText = data.ai_insight || "분석 결과 없음";
+  } catch (err) {
+    insightBox.innerText = "AI 분석 실패";
+  }
+}
+
+/* ===========================
+   MONTH SELECTOR
 =========================== */
 
 function initMonthSelector() {
@@ -49,9 +175,7 @@ function initMonthSelector() {
     const option = document.createElement("option");
     option.value = i;
     option.textContent = `${i}월`;
-
     if (i === currentMonth) option.selected = true;
-
     select.appendChild(option);
   }
 
@@ -103,15 +227,13 @@ function renderCategoryChart(categories) {
   const ctx = document.getElementById("categoryChart").getContext("2d");
   if (categoryChart) categoryChart.destroy();
 
-  const colors = ["#6366f1", "#8b5cf6", "#3b82f6", "#10b981"];
-
   categoryChart = new Chart(ctx, {
     type: "doughnut",
     data: {
       labels: categories.map(c => c.category),
       datasets: [{
         data: categories.map(c => c.total_amount),
-        backgroundColor: colors,
+        backgroundColor: ["#6366f1", "#8b5cf6", "#3b82f6", "#10b981"],
         borderWidth: 0,
       }],
     },
@@ -151,7 +273,7 @@ function renderDailyChart(dailyData) {
 }
 
 /* ===========================
-   RECENT LIST
+   RECENT
 =========================== */
 
 function renderRecent(list) {
@@ -173,17 +295,3 @@ function renderRecent(list) {
     container.appendChild(div);
   });
 }
-
-/* ===========================
-   INIT
-=========================== */
-
-document.addEventListener("DOMContentLoaded", () => {
-  initMonthSelector();   // 🔥 이거 반드시 필요
-  loadDashboard();
-});
-
-window.addEventListener("resize", () => {
-  if (categoryChart) categoryChart.resize();
-  if (dailyChart) dailyChart.resize();
-});

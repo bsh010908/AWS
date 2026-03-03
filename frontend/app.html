@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>AWS Ledger</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="css/app.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+<div class="app-layout">
+
+  <!-- 사이드바 -->
+  <aside class="sidebar">
+    <div class="logo">AWS Ledger</div>
+
+    <nav>
+      <a href="#/dashboard" class="nav-link">📊 대시보드</a>
+      <a href="#/receipts" class="nav-link">🧾 거래내역</a>
+      <a href="#/upload" class="nav-link">⬆ 업로드</a>
+      <a href="#/settings" class="nav-link">⚙ 설정</a>
+    </nav>
+
+    <button id="logoutBtn" class="logout-btn">로그아웃</button>
+  </aside>
+
+  <!-- 메인 -->
+  <main id="app-content"></main>
+
+</div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script type="module" src="js/app.js"></script>
+</body>
+</html>

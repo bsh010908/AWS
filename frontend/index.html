@@ -1,52 +1,87 @@
 <!doctype html>
 <html>
-  <head>
-    <meta charset="UTF-8" />
-    <title>AWS Ledger</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<head>
+  <meta charset="UTF-8" />
+  <title>AWS Ledger</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
 
-    <link rel="stylesheet" href="css/style.css" />
-  </head>
-  <body>
-    <div class="landing">
-      <main class="container">
-        <section class="hero">
-          <h1>영수증 업로드 한 번으로<br />자동 가계부 완성</h1>
-          <p>
-            AWS Textract와 AI 분류로 소비를 자동 정리하는<br />
-            클라우드 기반 가계부 SaaS
-          </p>
-
-          <!-- 중앙 버튼 영역 -->
-          <div class="cta" style="margin-top: 40px">
-            <!-- 지금 시작하기도 로그인으로 이동 -->
-            <a class="btn-primary" href="login.html">지금 시작하기</a>
-          </div>
-        </section>
-
-        <section class="features">
-          <div class="feature-card">
-            <div class="feature-title">글자 자동 인식</div>
-            <div class="feature-desc">
-              영수증 이미지를 업로드하면 자동으로 금액과 날짜를 추출합니다.
-            </div>
-          </div>
-
-          <div class="feature-card">
-            <div class="feature-title">AI 카테고리 분류</div>
-            <div class="feature-desc">
-              OpenAI 기반 자동 분류. 신뢰도 낮으면 ‘기타’ 처리.
-            </div>
-          </div>
-
-          <div class="feature-card">
-            <div class="feature-title">AWS 기반 확장 구조</div>
-            <div class="feature-desc">
-              EKS + MSA 아키텍처로 설계된 클라우드 SaaS 서비스.
-            </div>
-          </div>
-        </section>
-      </main>
+  <!-- 🔥 NAVBAR 추가 -->
+  <header class="navbar">
+    <div class="nav-container">
+      <div class="logo">AWS Ledger</div>
+      <div class="nav-links">
+        <a href="#features">기능</a>
+        <a href="login.html" class="btn-outline">로그인</a>
+      </div>
     </div>
-  </body>
+  </header>
+
+  <div class="landing">
+    <main class="container">
+
+      <!-- HERO -->
+      <section class="hero">
+        <h1>영수증 업로드 한 번으로<br />자동 가계부 완성</h1>
+        <p>
+          AWS Textract + OpenAI 기반 자동 분류<br />
+          클라우드 네이티브 SaaS 가계부
+        </p>
+
+        <div class="cta">
+          <a class="btn-primary" href="login.html">지금 시작하기</a>
+          <a class="btn-secondary" href="#features">기능 살펴보기</a>
+        </div>
+      </section>
+
+      <!-- FEATURES -->
+      <section id="features" class="features">
+
+        <div class="feature-card">
+          <div class="feature-title">📄 글자 자동 인식</div>
+          <div class="feature-desc">
+            AWS Textract로 영수증 텍스트를 자동 추출합니다.
+          </div>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-title">🤖 AI 카테고리 분류</div>
+          <div class="feature-desc">
+            OpenAI 기반 자동 분류 + 신뢰도 기반 ‘기타’ 처리
+          </div>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-title">☁ AWS 확장형 구조</div>
+          <div class="feature-desc">
+            EKS + MSA + RDS + S3 기반 클라우드 SaaS
+          </div>
+        </div>
+
+      </section>
+
+      <!-- 🔥 PRO 강조 섹션 추가 -->
+      <section class="pro-section">
+        <h2>PRO 플랜</h2>
+        <p>전월 비교 분석 + 소비 예측 + 무제한 OCR</p>
+        <a href="login.html" class="btn-primary">PRO 시작하기</a>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- 🔥 FOOTER -->
+  <footer class="footer">
+    <p>© 2026 AWS Ledger. Built with AWS & AI.</p>
+  </footer>
+
+  <!-- 로그인 상태면 app으로 -->
+  <script>
+    const token = localStorage.getItem("access_token");
+    if (token) window.location.href = "app.html";
+  </script>
+
+</body>
 </html>
