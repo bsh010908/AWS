@@ -1,0 +1,154 @@
+/* upload.css */
+
+.upload-page {
+  padding: 40px;
+}
+
+.upload-card {
+  background: white;
+  padding: 30px;
+  border-radius: 20px;
+  border: 1px solid #e5e7eb;
+  max-width: 500px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.04);
+}
+
+.file-drop {
+  border: 2px dashed #c7d2fe;
+  border-radius: 16px;
+  padding: 40px;
+  text-align: center;
+  color: #6366f1;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.upload-btn {
+  margin-top: 30px;
+  width: 100%;
+  padding: 14px;
+  border-radius: 14px;
+  border: none;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: white;
+}
+
+.file-drop:hover {
+  background: #f5f7ff;
+}
+
+.upload-result {
+  margin-top: 40px;
+  background: white;
+  padding: 30px;
+  border-radius: 20px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.04);
+}
+
+.result-content {
+  display: flex;
+  gap: 30px;
+  align-items: center;
+}
+
+.result-content img {
+  width: 180px;
+  border-radius: 12px;
+  object-fit: cover;
+  border: 1px solid #e5e7eb;
+}
+
+.result-info p {
+  margin-bottom: 10px;
+  font-size: 15px;
+}
+
+.upload-container {
+  max-width: 900px;
+  margin: 40px auto;
+}
+
+.upload-title {
+  font-size: 24px;
+  margin-bottom: 30px;
+}
+
+.upload-box {
+  background: white;
+  padding: 40px;
+  border-radius: 24px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.04);
+}
+
+.drop-zone {
+  display: block;
+  border: 2px dashed #c7d2fe;
+  border-radius: 20px;
+  padding: 60px;
+  text-align: center;
+  cursor: pointer;
+  transition: 0.2s;
+  position: relative;
+}
+
+.drop-zone:hover {
+  background: #f8faff;
+}
+
+.upload-icon {
+  font-size: 42px;
+  margin-bottom: 10px;
+}
+
+.preview {
+  margin-top: 20px;
+  max-width: 100%;
+  border-radius: 16px;
+}
+
+.upload-status {
+  margin-top: 15px;
+  font-size: 14px;
+}
+
+.result-card {
+  margin-top: 40px;
+  background: white;
+  padding: 40px;
+  border-radius: 24px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.04);
+}
+
+.result-grid {
+  display: flex;
+  gap: 40px;
+  align-items: center;
+}
+
+.result-image img {
+  width: 260px;
+  border-radius: 16px;
+}
+
+.result-info div {
+  margin-bottom: 15px;
+  display: flex;
+  flex-direction: column;
+}
+
+.result-info span {
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.result-info strong {
+  font-size: 18px;
+}
+
+.drop-zone.dragging {
+  background: #eef2ff;
+  border-color: #6366f1;
+}

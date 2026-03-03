@@ -5,6 +5,7 @@ from app.routers import dashboard_router
 from app.routers import transaction_router
 from app.routers import receipt_router
 from app.routers import category_router
+from app.routers import ocr_usage_router
 
 app = FastAPI()
 
@@ -23,3 +24,4 @@ app.include_router(dashboard_router.router)
 app.include_router(transaction_router.router)
 app.include_router(receipt_router.router)
 app.include_router(category_router.router)
+app.include_router(ocr_usage_router.router)

@@ -1,0 +1,110 @@
+/* receipts.css */
+
+.receipts-page {
+  padding: 40px;
+}
+
+.tx-grid {
+  display: grid;
+  gap: 18px;
+}
+
+.tx-card {
+  background: #ffffff;
+  padding: 22px;
+  border-radius: 18px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+}
+
+.pagination {
+  margin-top: 30px;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 30px;
+}
+
+.page-title h2 {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 700;
+}
+
+.page-sub {
+  margin-top: 6px;
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.page-actions {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.month-picker-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.month-label {
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+.month-picker {
+  padding: 10px 14px;
+  border-radius: 14px;
+  border: 1px solid #e5e7eb;
+  font-size: 14px;
+  background: #ffffff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.month-picker:hover {
+  border-color: #111827;
+}
+
+.month-picker:focus {
+  outline: none;
+  border-color: #111827;
+  box-shadow: 0 0 0 3px rgba(17, 24, 39, 0.1);
+}
+
+.tx-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.1);
+}
+
+.tx-top {
+  display: flex;
+  justify-content: space-between;
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.tx-amount {
+  color: #111827;
+}
+
+.tx-meta {
+  margin-top: 10px;
+  font-size: 13px;
+  color: #6b7280;
+  display: flex;
+  justify-content: space-between;
+}
+
+.tx-actions {
+  margin-top: 16px;
+  display: flex;
+  gap: 12px;
+}

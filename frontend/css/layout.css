@@ -1,0 +1,51 @@
+/* layout.css */
+
+.app-layout {
+  display: flex;
+  height: 100vh;
+}
+
+.sidebar {
+  width: 240px;
+  background: #111827;
+  color: white;
+  padding: 30px 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+.logo {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 40px;
+}
+
+.nav-link {
+  display: block;
+  padding: 12px;
+  border-radius: 8px;
+  color: #cbd5e1;
+  text-decoration: none;
+  margin-bottom: 10px;
+}
+
+.nav-link:hover {
+  background: #1f2937;
+  color: white;
+}
+
+.logout-btn {
+  margin-top: auto;
+  padding: 10px;
+  background: transparent;
+  border: 1px solid #374151;
+  color: white;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+main {
+  flex: 1;
+  padding: 40px;
+  overflow-y: auto;
+}
