@@ -20,7 +20,7 @@ def save_receipt(db: Session, user_id: int, classification: dict, raw_text: str)
             Category.user_id == None
         ).first()
 
-    # 🔹 Document 저장
+    # 🔹 Document 저장 (AI 분석 결과 저장소)
     document = Document(
         user_id=user_id,
         input_type="RECEIPT",
@@ -36,14 +36,16 @@ def save_receipt(db: Session, user_id: int, classification: dict, raw_text: str)
     db.add(document)
     db.flush()  # document_id 생성
 
-    # 🔹 Transaction 저장
+    # 🔹 Transaction 저장 (🔥 여기 중요 수정)
     transaction = Transaction(
         user_id=user_id,
         document_id=document.document_id,
-        amount=classification.get("amount", 0),
+        merchant_name=document.merchant_name,     # 🔥 추가
+        amount=document.total_amount,
         category_id=category.category_id if category else None,
         occurred_at=datetime.now(),
-        memo="AI 자동 등록"
+        memo="AI 자동 등록",
+        source_type="OCR"                        # 🔥 추가
     )
 
     db.add(transaction)
@@ -56,6 +58,7 @@ def save_receipt(db: Session, user_id: int, classification: dict, raw_text: str)
         "document_id": document.document_id,
         "tx_id": transaction.tx_id,
         "category": category.name if category else "기타",
-        "amount": classification.get("amount", 0),
-        "merchant_name": classification.get("merchant_name", "")
+        "amount": transaction.amount,
+        "merchant_name": transaction.merchant_name,
+        "ai_confidence": document.ai_confidence
     }

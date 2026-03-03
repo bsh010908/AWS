@@ -6,6 +6,7 @@ from app.schemas.transaction_schema import TransactionCreate
 
 def create_transaction(db: Session, user_id: int, data: TransactionCreate):
 
+    # 1️⃣ 카테고리 찾기
     category_obj = (
         db.query(Category)
         .filter(Category.name == data.category)
@@ -23,11 +24,16 @@ def create_transaction(db: Session, user_id: int, data: TransactionCreate):
         db.add(category_obj)
         db.flush()
 
+    # 2️⃣ 🔥 Transaction만 생성 (Document 생성 제거)
     new_tx = Transaction(
         user_id=user_id,
         amount=data.amount,
         category_id=category_obj.category_id,
         occurred_at=data.occurred_at,
+        memo=data.memo,
+        merchant_name=data.merchant_name,
+        source_type="MANUAL",   # 🔥 명시
+        document_id=None
     )
 
     db.add(new_tx)
@@ -39,6 +45,8 @@ def create_transaction(db: Session, user_id: int, data: TransactionCreate):
         "amount": new_tx.amount,
         "category": category_obj.name,
         "occurred_at": new_tx.occurred_at,
+        "merchant_name": new_tx.merchant_name,
+        "memo": new_tx.memo,
     }
 
 
@@ -56,8 +64,10 @@ def get_recent_transactions(db: Session, user_id: int):
         {
             "tx_id": tx.tx_id,
             "amount": tx.amount,
-            "category": tx.category.name,
-            "occurred_at": tx.occurred_at
+            "category": tx.category.name if tx.category else None,
+            "occurred_at": tx.occurred_at,
+            "merchant_name": tx.merchant_name,
+            "memo": tx.memo,
         }
         for tx in results
     ]

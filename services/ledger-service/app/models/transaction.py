@@ -35,6 +35,9 @@ class Transaction(Base):
 
     memo = Column(String(255))
 
+    merchant_name = Column(String(100), nullable=True)
+    source_type = Column(String(20), nullable=False, default="MANUAL")
+
     created_at = Column(
         DateTime,
         server_default=func.now(),

@@ -1,33 +1,20 @@
-/* receipts.css */
+/* ===========================
+   receipts.css
+=========================== */
 
 .receipts-page {
   padding: 40px;
 }
 
-.tx-grid {
-  display: grid;
-  gap: 18px;
-}
-
-.tx-card {
-  background: #ffffff;
-  padding: 22px;
-  border-radius: 18px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
-}
-
-.pagination {
-  margin-top: 30px;
-  display: flex;
-  justify-content: center;
-  gap: 8px;
-}
+/* ===========================
+   HEADER
+=========================== */
 
 .page-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
-  margin-bottom: 30px;
+  margin-bottom: 32px;
 }
 
 .page-title h2 {
@@ -45,19 +32,12 @@
 .page-actions {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 14px;
 }
 
-.month-picker-wrap {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.month-label {
-  font-size: 12px;
-  color: #9ca3af;
-}
+/* ===========================
+   MONTH PICKER
+=========================== */
 
 .month-picker {
   padding: 10px 14px;
@@ -79,32 +59,209 @@
   box-shadow: 0 0 0 3px rgba(17, 24, 39, 0.1);
 }
 
-.tx-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.1);
+/* ===========================
+   GRID
+=========================== */
+
+.tx-grid {
+  display: grid;
+  gap: 16px;
 }
 
-.tx-top {
+/* ===========================
+   CARD
+=========================== */
+
+.tx-card {
+  background: #ffffff;
+  padding: 20px 22px;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
+}
+
+.tx-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.08);
+}
+
+.tx-card-inner {
   display: flex;
   justify-content: space-between;
-  font-weight: 600;
-  font-size: 16px;
+  align-items: flex-start;
 }
 
-.tx-amount {
+/* 왼쪽 */
+.tx-left {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tx-category {
+  font-weight: 600;
+  font-size: 15px;
   color: #111827;
 }
 
-.tx-meta {
-  margin-top: 10px;
+.tx-merchant {
   font-size: 13px;
   color: #6b7280;
-  display: flex;
-  justify-content: space-between;
 }
 
-.tx-actions {
-  margin-top: 16px;
+/* 오른쪽 */
+.tx-right {
   display: flex;
-  gap: 12px;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.tx-amount {
+  font-weight: 700;
+  font-size: 17px;
+  color: #111827;
+}
+
+.tx-date {
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+/* ===========================
+   AI BADGE
+=========================== */
+
+.ai-badge {
+  font-size: 11px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-weight: 600;
+}
+
+.ai-badge.green {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.ai-badge.orange {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.ai-badge.red {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+/* ===========================
+   ACTION BUTTONS
+=========================== */
+
+.tx-actions {
+  margin-top: 14px;
+  display: flex;
+  gap: 8px;
+}
+
+.edit-btn {
+  background: #111827;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.edit-btn:hover {
+  opacity: 0.85;
+}
+
+.delete-btn {
+  background: #ef4444;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.delete-btn:hover {
+  opacity: 0.85;
+}
+
+/* ===========================
+   SECONDARY BUTTON
+=========================== */
+
+.secondary-btn {
+  background: #f3f4f6;
+  border: 1px solid #d1d5db;
+  padding: 8px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.15s ease;
+}
+
+.secondary-btn:hover {
+  background: #e5e7eb;
+}
+
+.secondary-btn.active {
+  background: #111827;
+  color: white;
+  border-color: #111827;
+}
+
+/* ===========================
+   PAGINATION
+=========================== */
+
+.pagination {
+  margin-top: 40px;
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+}
+
+.page-btn {
+  min-width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  background: white;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.15s ease;
+}
+
+.page-btn:hover {
+  border-color: #111827;
+}
+
+.page-btn.active {
+  background: #111827;
+  color: white;
+  border-color: #111827;
+}
+
+.dots {
+  padding: 0 6px;
+  color: #9ca3af;
+  display: flex;
+  align-items: center;
+}
+
+/* ===========================
+   EMPTY STATE
+=========================== */
+
+.empty-state {
+  text-align: center;
+  padding: 60px 0;
+  color: #9ca3af;
+  font-size: 14px;
 }

@@ -57,6 +57,7 @@ def get_transactions(
     month: int = Query(...),
     page: int = Query(0, ge=0),
     size: int = Query(10, ge=1, le=100),
+    source_type: str | None = Query(None),
     db: Session = Depends(get_db),
     current_user: dict = Depends(get_current_user),
 ):
@@ -66,12 +67,15 @@ def get_transactions(
 
     query = (
         db.query(Transaction)
-        .options(joinedload(Transaction.document))   
         .options(joinedload(Transaction.category))
+        .options(joinedload(Transaction.document))
         .filter(Transaction.user_id == user_id)
         .filter(Transaction.occurred_at >= start_date)
         .filter(Transaction.occurred_at < end_date)
     )
+
+    if source_type:
+        query = query.filter(Transaction.source_type == source_type)
 
     total_elements = query.count()
 
@@ -90,19 +94,14 @@ def get_transactions(
             "occurred_at": tx.occurred_at.isoformat()
             if tx.occurred_at
             else None,
-            "merchant_name": (
-                tx.document.merchant_name
-                if tx.document and tx.document.merchant_name
-                else None
-            ),
+            "merchant_name": tx.merchant_name,
             "memo": tx.memo,
-
-            # 🔥 여기 추가
+            "source_type": tx.source_type,   # 🔥 추가
             "ai_confidence": (
                 float(tx.document.ai_confidence)
-                if tx.document and tx.document.ai_confidence is not None
+                if tx.source_type == "OCR" and tx.document and tx.document.ai_confidence is not None
                 else None
-            ),
+        ),
         }
         for tx in transactions
     ]
@@ -135,22 +134,14 @@ def get_transaction_detail(
     if not tx:
         raise HTTPException(status_code=404, detail="거래 없음")
 
-    doc = tx.document
-
     return {
         "id": tx.tx_id,
         "amount": tx.amount,
         "category_id": tx.category_id,
         "memo": tx.memo,
+        "merchant_name": tx.merchant_name,
         "occurred_at": tx.occurred_at.isoformat()
         if tx.occurred_at
-        else None,
-
-        "document_id": tx.document_id,
-        "merchant_name": doc.merchant_name if doc else None,
-        "document_total_amount": doc.total_amount if doc else None,
-        "document_occurred_at": doc.occurred_at.isoformat()
-        if doc and doc.occurred_at
         else None,
     }
 
@@ -200,7 +191,6 @@ def update_transaction(
     if not tx:
         raise HTTPException(status_code=404, detail="거래 없음")
 
-    # Transaction 수정
     if "memo" in payload:
         tx.memo = payload["memo"]
 
@@ -208,39 +198,13 @@ def update_transaction(
         tx.category_id = payload["category_id"]
 
     if "amount" in payload:
-        try:
-            amount = int(payload["amount"])
-        except Exception:
-            raise HTTPException(status_code=400, detail="amount는 정수여야 합니다")
-
-        if amount < 0:
-            raise HTTPException(status_code=400, detail="amount는 0 이상이어야 합니다")
-
-        tx.amount = amount
+        tx.amount = int(payload["amount"])
 
     if "occurred_at" in payload:
-        try:
-            tx.occurred_at = datetime.fromisoformat(payload["occurred_at"])
-        except Exception:
-            raise HTTPException(status_code=400, detail="occurred_at 형식이 올바르지 않습니다")
+        tx.occurred_at = datetime.fromisoformat(payload["occurred_at"])
 
-    # OCR 문서 수정
-    doc = getattr(tx, "document", None)
-    if doc:
-        if "merchant_name" in payload:
-            doc.merchant_name = payload["merchant_name"]
-
-        if "document_total_amount" in payload:
-            try:
-                doc.total_amount = int(payload["document_total_amount"])
-            except Exception:
-                raise HTTPException(status_code=400, detail="document_total_amount는 정수여야 합니다")
-
-        if "document_occurred_at" in payload:
-            try:
-                doc.occurred_at = datetime.fromisoformat(payload["document_occurred_at"])
-            except Exception:
-                raise HTTPException(status_code=400, detail="document_occurred_at 형식이 올바르지 않습니다")
+    if "merchant_name" in payload:
+        tx.merchant_name = payload["merchant_name"]
 
     db.commit()
 

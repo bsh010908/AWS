@@ -4,6 +4,7 @@ let currentYear;
 let currentMonth;
 let currentPage = 0;
 let totalPages = 0;
+let currentSourceType = null; // null = 전체, "OCR" = AI만
 const pageSize = 10;
 
 /* =====================================================
@@ -12,25 +13,41 @@ const pageSize = 10;
 export async function renderReceipts() {
   return `
     <section class="page receipts-page">
+
       <div class="page-header">
+
         <div class="page-title">
           <h2>거래내역</h2>
-          <p class="page-sub">수기 입력 · 수정 · 삭제 · 카테고리 관리</p>
+          <p class="page-sub">
+            수기 입력 · 수정 · 삭제 · 카테고리 관리
+          </p>
         </div>
 
         <div class="page-actions">
+
           <div class="month-picker-wrap">
-            <input type="month" id="monthPicker" class="month-picker" />
+            <input 
+              type="month" 
+              id="monthPicker" 
+              class="month-picker" 
+            />
           </div>
 
           <button id="addTxBtn" class="primary-btn">
             + 거래 추가
           </button>
+
+          <button id="aiOnlyBtn" class="secondary-btn">
+             AI만 보기
+          </button>
+
         </div>
+
       </div>
 
       <div id="transactionList" class="tx-grid"></div>
       <div id="modalRoot"></div>
+
     </section>
   `;
 }
@@ -44,6 +61,16 @@ export async function afterRenderReceipts() {
   monthInput.value = `${currentYear}-${String(currentMonth).padStart(2, "0")}`;
 
   document.getElementById("addTxBtn").onclick = openCreateTxModal;
+  document.getElementById("aiOnlyBtn").onclick = async () => {
+    if (currentSourceType === "OCR") {
+      currentSourceType = null; // 전체 보기
+    } else {
+      currentSourceType = "OCR"; // AI만 보기
+    }
+
+    currentPage = 0;
+    await loadTransactions();
+  };
 
   await loadTransactions();
 
@@ -60,9 +87,13 @@ export async function afterRenderReceipts() {
    리스트 로딩
 ===================================================== */
 async function loadTransactions() {
+  const sourceParam = currentSourceType
+    ? `&source_type=${currentSourceType}`
+    : "";
+
   const data = await apiRequest(
     LEDGER_BASE,
-    `/transactions?year=${currentYear}&month=${currentMonth}&page=${currentPage}&size=${pageSize}`,
+    `/transactions?year=${currentYear}&month=${currentMonth}&page=${currentPage}&size=${pageSize}${sourceParam}`,
   );
 
   console.log("응답:", data);
@@ -110,17 +141,25 @@ function renderList(list) {
       : "";
 
     card.innerHTML = `
-     <div class="tx-top">
-  <div class="tx-category">${tx.category ?? "미분류"}</div>
-  <div class="tx-right">
-    ${getConfidenceBadge(tx.ai_confidence)}
-    <div class="tx-amount">${Number(tx.amount).toLocaleString()} 원</div>
-  </div>
-</div>
+      <div class="tx-card-inner">
 
-      <div class="tx-meta">
-        <span>${tx.merchant_name ?? ""}</span>
-        <span>${dateText}</span>
+        <div class="tx-left">
+          <div class="tx-category">${tx.category ?? "미분류"}</div>
+          <div class="tx-merchant">${tx.merchant_name ?? ""}</div>
+        </div>
+
+        <div class="tx-right">
+          <div class="tx-amount">
+            ${Number(tx.amount).toLocaleString()} 원
+          </div>
+
+          ${getConfidenceBadge(tx.ai_confidence)}
+
+          <div class="tx-date">
+            ${dateText}
+          </div>
+        </div>
+
       </div>
 
       <div class="tx-actions">
@@ -352,6 +391,11 @@ async function openEditModal(tx) {
             <input id="editAmount" type="number"
               value="${Number(tx.amount) || 0}" />
           </div>
+          <div class="form-group">
+  <label>상호명</label>
+<input id="editMerchant" type="text"
+  value="${tx.merchant_name ?? ""}" placeholder="예) 스타벅스 / CU / 버스"/>
+</div>
 
           <div class="form-group">
             <label>날짜</label>
@@ -399,12 +443,14 @@ async function openEditModal(tx) {
         const memo = document.getElementById("editMemo").value;
         const categoryValue = document.getElementById("editCategory").value;
         const dateValue = document.getElementById("editDate").value;
+        const merchant = document.getElementById("editMerchant").value;
 
         if (!validateTx({ amount, categoryValue, dateValue })) return;
 
         await apiRequest(LEDGER_BASE, `/transactions/${tx.id}`, {
           method: "PUT",
           body: JSON.stringify({
+            merchant_name: merchant || null,
             amount,
             memo,
             category_id: Number(categoryValue),
@@ -440,6 +486,11 @@ async function openCreateTxModal() {
             <input id="createAmount" type="number"
               placeholder="예) 12000" />
           </div>
+          <div class="form-group">
+  <label>상호명</label>
+  <input id="createMerchant" type="text"
+  placeholder="예) 스타벅스 / CU / 버스" />
+</div>
 
           <div class="form-group">
             <label>날짜</label>
@@ -485,13 +536,17 @@ async function openCreateTxModal() {
       document.getElementById("saveCreate").onclick = async () => {
         const amount = Number(document.getElementById("createAmount").value);
         const memo = document.getElementById("createMemo").value;
-        const categoryValue = document.getElementById("createCategory").value;
+        const categorySelect = document.getElementById("createCategory");
+        const categoryName =
+          categorySelect.options[categorySelect.selectedIndex].text;
         const dateValue = document.getElementById("createDate").value;
+        const merchant = document.getElementById("createMerchant").value;
 
         if (
           !validateTx({
+            merchant_name: merchant || null,
             amount,
-            categoryValue,
+            categoryValue: categorySelect.value,
             dateValue,
           })
         )
@@ -501,9 +556,9 @@ async function openCreateTxModal() {
           method: "POST",
           body: JSON.stringify({
             amount,
-            memo,
-            category_id: Number(categoryValue),
-            occurred_at: isoFromDateInput(dateValue),
+            memo: memo || "",
+            category: categoryName, // 🔥 여기
+            occurred_at: new Date(dateValue).toISOString(),
           }),
         });
 
