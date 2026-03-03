@@ -2,23 +2,30 @@ import { renderDashboard, afterRenderDashboard } from "./pages/dashboard.js";
 import { renderReceipts, afterRenderReceipts } from "./pages/receipts.js";
 import { renderUpload, afterRenderUpload } from "./pages/upload.js";
 import { renderSettings } from "./pages/settings.js";
-
+import {
+  renderSubscription,
+  afterRenderSubscription,
+} from "./pages/subscription.js";
 const routes = {
   "/dashboard": {
     render: renderDashboard,
-    after: afterRenderDashboard
+    after: afterRenderDashboard,
   },
   "/receipts": {
     render: renderReceipts,
-    after: afterRenderReceipts   // ✅ receipts도 after 추가
+    after: afterRenderReceipts, // ✅ receipts도 after 추가
   },
   "/upload": {
     render: renderUpload,
-    after: afterRenderUpload
+    after: afterRenderUpload,
+  },
+  "/subscription": {
+    render: renderSubscription,
+    after: afterRenderSubscription,
   },
   "/settings": {
-    render: renderSettings
-  }
+    render: renderSettings,
+  },
 };
 
 export async function router() {
@@ -32,7 +39,7 @@ export async function router() {
   }
 
   // 🔥 활성 메뉴 표시 처리 (추가 추천)
-  document.querySelectorAll(".nav-link").forEach(link => {
+  document.querySelectorAll(".nav-link").forEach((link) => {
     link.classList.remove("active");
     if (link.getAttribute("href") === `#${hash}`) {
       link.classList.add("active");

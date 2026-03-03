@@ -5,6 +5,7 @@ from sqlalchemy.sql import func
 from sqlalchemy import DateTime
 
 
+
 class Transaction(Base):
     __tablename__ = "transactions"
 

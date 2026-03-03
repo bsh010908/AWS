@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import desc
 from datetime import datetime
 from fastapi import Body
+from sqlalchemy.orm import joinedload
 
 from app.db.session import get_db
 from app.core.security import get_current_user
@@ -65,6 +66,8 @@ def get_transactions(
 
     query = (
         db.query(Transaction)
+        .options(joinedload(Transaction.document))   
+        .options(joinedload(Transaction.category))
         .filter(Transaction.user_id == user_id)
         .filter(Transaction.occurred_at >= start_date)
         .filter(Transaction.occurred_at < end_date)
@@ -93,6 +96,13 @@ def get_transactions(
                 else None
             ),
             "memo": tx.memo,
+
+            # 🔥 여기 추가
+            "ai_confidence": (
+                float(tx.document.ai_confidence)
+                if tx.document and tx.document.ai_confidence is not None
+                else None
+            ),
         }
         for tx in transactions
     ]
