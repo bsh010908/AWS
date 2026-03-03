@@ -59,9 +59,6 @@ main {
   overflow-y: auto;
 }
 
-
-
-
 /*대시보드 영역*/
 
 body {
@@ -173,7 +170,7 @@ body {
   height: 100% !important;
 }
 
-/* ================= MONTH SELECT CLEAN VERSION ================= */
+/* ================= MONTH SELECT ================= */
 
 .chart-header {
   display: flex;
@@ -210,7 +207,7 @@ body {
 #monthSelect:focus {
   outline: none;
   border-color: #6366f1;
-  box-shadow: 0 0 0 3px rgba(99,102,241,0.15);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
 }
 
 /* 🔥 커스텀 화살표 */
@@ -255,9 +252,337 @@ body {
   font-weight: 500;
 }
 
-.month-compare.up { color: #ef4444; }
-.month-compare.down { color: #2563eb; }
-.month-compare.same { color: #6b7280; }
+.month-compare.up {
+  color: #ef4444;
+}
+.month-compare.down {
+  color: #2563eb;
+}
+.month-compare.same {
+  color: #6b7280;
+}
+
+/* ================= 업로드 ================= */
+.upload-page {
+  padding: 40px;
+}
+
+.upload-card {
+  background: white;
+  padding: 30px;
+  border-radius: 20px;
+  border: 1px solid #e5e7eb;
+  max-width: 500px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.04);
+}
+
+.file-drop {
+  border: 2px dashed #c7d2fe;
+  border-radius: 16px;
+  padding: 40px;
+  text-align: center;
+  color: #6366f1;
+  font-weight: 500;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.file-drop:hover {
+  background: #f5f7ff;
+}
+
+.upload-result {
+  margin-top: 40px;
+  background: white;
+  padding: 30px;
+  border-radius: 20px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.04);
+}
+
+.result-content {
+  display: flex;
+  gap: 30px;
+  align-items: center;
+}
+
+.result-content img {
+  width: 180px;
+  border-radius: 12px;
+  object-fit: cover;
+  border: 1px solid #e5e7eb;
+}
+
+.result-info p {
+  margin-bottom: 10px;
+  font-size: 15px;
+}
+
+.hidden {
+  display: none;
+}
+
+.upload-container {
+  max-width: 900px;
+  margin: 40px auto;
+}
+
+.upload-title {
+  font-size: 24px;
+  margin-bottom: 30px;
+}
+
+.upload-box {
+  background: white;
+  padding: 40px;
+  border-radius: 24px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.04);
+}
+
+.drop-zone {
+  display: block;
+  border: 2px dashed #c7d2fe;
+  border-radius: 20px;
+  padding: 60px;
+  text-align: center;
+  cursor: pointer;
+  transition: 0.2s;
+  position: relative;
+}
+
+.drop-zone:hover {
+  background: #f8faff;
+}
+
+.upload-icon {
+  font-size: 42px;
+  margin-bottom: 10px;
+}
+
+.preview {
+  margin-top: 20px;
+  max-width: 100%;
+  border-radius: 16px;
+}
+
+.upload-btn {
+  margin-top: 30px;
+  width: 100%;
+  padding: 14px;
+  border-radius: 14px;
+  border: none;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.upload-status {
+  margin-top: 15px;
+  font-size: 14px;
+}
+
+.result-card {
+  margin-top: 40px;
+  background: white;
+  padding: 40px;
+  border-radius: 24px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.04);
+}
+
+.result-grid {
+  display: flex;
+  gap: 40px;
+  align-items: center;
+}
+
+.result-image img {
+  width: 260px;
+  border-radius: 16px;
+}
+
+.result-info div {
+  margin-bottom: 15px;
+  display: flex;
+  flex-direction: column;
+}
+
+.result-info span {
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.result-info strong {
+  font-size: 18px;
+}
+
+.hidden {
+  display: none;
+}
+
+.drop-zone.dragging {
+  background: #eef2ff;
+  border-color: #6366f1;
+}
+
+/*=============== 최근거래 리스트================*/
+
+.receipts-page {
+  padding: 30px;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.tx-grid {
+  margin-top: 20px;
+  display: grid;
+  gap: 16px;
+}
+
+.tx-card {
+  background: white;
+  padding: 18px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  transition: 0.2s;
+}
+
+.tx-card:hover {
+  transform: translateY(-2px);
+}
+
+.tx-top {
+  display: flex;
+  justify-content: space-between;
+  font-weight: 600;
+}
+
+.tx-meta {
+  margin-top: 8px;
+  font-size: 13px;
+  color: #6b7280;
+  display: flex;
+  justify-content: space-between;
+}
+
+.tx-actions {
+  margin-top: 12px;
+  display: flex;
+  gap: 10px;
+}
+
+.edit-btn {
+  background: #111827;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.delete-btn {
+  background: #ef4444;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(6px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal {
+  width: 420px;
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 28px;
+  box-shadow: 0 30px 60px rgba(0,0,0,0.15);
+  animation: popIn 0.25s ease;
+}
+
+.modal h3 {
+  margin: 0 0 20px 0;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 14px;
+}
+
+.form-group label {
+  font-size: 13px;
+  margin-bottom: 6px;
+  color: #6b7280;
+}
+
+.form-group input,
+.form-group select {
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  font-size: 14px;
+  outline: none;
+  transition: 0.2s;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  border-color: #111827;
+}
+
+.modal-footer {
+  margin-top: 20px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.primary-btn {
+  background: #111827;
+  color: white;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.secondary-btn {
+  background: #f3f4f6;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.add-category-btn {
+  margin-top: 6px;
+  font-size: 12px;
+  color: #111827;
+  cursor: pointer;
+}
+
+@keyframes popIn {
+  from { transform: scale(0.92); opacity: 0 }
+  to { transform: scale(1); opacity: 1 }
+}
 
 @media (max-width: 900px) {
   .kpi-section,

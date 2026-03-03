@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, Query, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import desc
 from datetime import datetime
+from fastapi import Body
 
 from app.db.session import get_db
 from app.core.security import get_current_user
@@ -145,7 +146,7 @@ def get_transaction_detail(
 
 
 # ===============================
-# 거래 삭제 (선택 추가)
+# 거래 삭제
 # ===============================
 @router.delete("/{tx_id}")
 def delete_transaction(
@@ -167,3 +168,70 @@ def delete_transaction(
     db.commit()
 
     return {"message": "삭제 완료"}
+
+
+# ===============================
+# 거래 수정
+# ===============================
+@router.put("/{tx_id}")
+def update_transaction(
+    tx_id: int,
+    payload: dict = Body(...),
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user),
+):
+    tx = (
+        db.query(Transaction)
+        .filter(Transaction.tx_id == tx_id)
+        .filter(Transaction.user_id == current_user["user_id"])
+        .first()
+    )
+
+    if not tx:
+        raise HTTPException(status_code=404, detail="거래 없음")
+
+    # Transaction 수정
+    if "memo" in payload:
+        tx.memo = payload["memo"]
+
+    if "category_id" in payload:
+        tx.category_id = payload["category_id"]
+
+    if "amount" in payload:
+        try:
+            amount = int(payload["amount"])
+        except Exception:
+            raise HTTPException(status_code=400, detail="amount는 정수여야 합니다")
+
+        if amount < 0:
+            raise HTTPException(status_code=400, detail="amount는 0 이상이어야 합니다")
+
+        tx.amount = amount
+
+    if "occurred_at" in payload:
+        try:
+            tx.occurred_at = datetime.fromisoformat(payload["occurred_at"])
+        except Exception:
+            raise HTTPException(status_code=400, detail="occurred_at 형식이 올바르지 않습니다")
+
+    # OCR 문서 수정
+    doc = getattr(tx, "document", None)
+    if doc:
+        if "merchant_name" in payload:
+            doc.merchant_name = payload["merchant_name"]
+
+        if "document_total_amount" in payload:
+            try:
+                doc.total_amount = int(payload["document_total_amount"])
+            except Exception:
+                raise HTTPException(status_code=400, detail="document_total_amount는 정수여야 합니다")
+
+        if "document_occurred_at" in payload:
+            try:
+                doc.occurred_at = datetime.fromisoformat(payload["document_occurred_at"])
+            except Exception:
+                raise HTTPException(status_code=400, detail="document_occurred_at 형식이 올바르지 않습니다")
+
+    db.commit()
+
+    return {"message": "수정 완료"}

@@ -1,4 +1,4 @@
-from openai import OpenAI
+from openai import OpenAI, RateLimitError
 from dotenv import load_dotenv
 import os
 import json
@@ -38,26 +38,39 @@ def classify_receipt(text: str):
     {text}
     """
 
-    response = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=[{"role": "user", "content": prompt}],
-        temperature=0.2
-    )
-
-    content = response.choices[0].message.content.strip()
-
-    # 🔥 코드블럭 제거
-    if content.startswith("```"):
-        content = content.replace("```json", "").replace("```", "").strip()
-
     try:
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.2,
+            max_tokens=120
+        )
+
+        content = response.choices[0].message.content.strip()
+
+        # 코드블럭 제거
+        if content.startswith("```"):
+            content = content.replace("```json", "").replace("```", "").strip()
+
         data = json.loads(content)
 
         data["amount"] = float(data.get("amount", 0))
         data["confidence"] = float(data.get("confidence", 0))
         data["merchant_name"] = data.get("merchant_name", "").strip()
 
-    except Exception:
+    except RateLimitError:
+        print("⚠ OpenAI quota 초과 → 기타로 처리")
+
+        data = {
+            "category": "기타",
+            "confidence": 0.0,
+            "amount": 0,
+            "merchant_name": ""
+        }
+
+    except Exception as e:
+        print("⚠ AI 분류 에러:", e)
+
         data = {
             "category": "기타",
             "confidence": 0.0,

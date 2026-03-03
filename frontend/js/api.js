@@ -2,7 +2,7 @@ const AUTH_BASE = "http://localhost:8001";
 const LEDGER_BASE = "http://localhost:8002";
 
 export async function apiRequest(base, endpoint, options = {}) {
-  const token = localStorage.getItem("token");
+  const token = localStorage.getItem("access_token");
 
   const headers = {
     "Content-Type": "application/json",
@@ -18,10 +18,23 @@ export async function apiRequest(base, endpoint, options = {}) {
     headers
   });
 
-  const data = await response.json();
+  // 🔐 인증 만료 처리
+  if (response.status === 401) {
+    localStorage.removeItem("access_token");
+    window.location.href = "login.html";
+    return;
+  }
+
+  let data = null;
+
+  try {
+    data = await response.json();
+  } catch {
+    data = null;
+  }
 
   if (!response.ok) {
-    throw new Error(data.detail || "API Error");
+    throw new Error(data?.detail || "API Error");
   }
 
   return data;

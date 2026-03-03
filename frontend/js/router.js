@@ -1,6 +1,6 @@
 import { renderDashboard, afterRenderDashboard } from "./pages/dashboard.js";
-import { renderReceipts } from "./pages/receipts.js";
-import { renderUpload } from "./pages/upload.js";
+import { renderReceipts, afterRenderReceipts } from "./pages/receipts.js";
+import { renderUpload, afterRenderUpload } from "./pages/upload.js";
 import { renderSettings } from "./pages/settings.js";
 
 const routes = {
@@ -9,10 +9,12 @@ const routes = {
     after: afterRenderDashboard
   },
   "/receipts": {
-    render: renderReceipts
+    render: renderReceipts,
+    after: afterRenderReceipts   // ✅ receipts도 after 추가
   },
   "/upload": {
-    render: renderUpload
+    render: renderUpload,
+    after: afterRenderUpload
   },
   "/settings": {
     render: renderSettings
@@ -29,10 +31,18 @@ export async function router() {
     return;
   }
 
-  // 1️⃣ 화면 먼저 렌더
+  // 🔥 활성 메뉴 표시 처리 (추가 추천)
+  document.querySelectorAll(".nav-link").forEach(link => {
+    link.classList.remove("active");
+    if (link.getAttribute("href") === `#${hash}`) {
+      link.classList.add("active");
+    }
+  });
+
+  // 1️⃣ 화면 렌더
   app.innerHTML = await route.render();
 
-  // 2️⃣ 렌더 이후 실행 함수 있으면 실행
+  // 2️⃣ after 실행
   if (route.after) {
     await route.after();
   }
