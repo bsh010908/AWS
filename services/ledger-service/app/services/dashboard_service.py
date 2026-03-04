@@ -5,6 +5,7 @@ from calendar import monthrange
 
 from app.models.transaction import Transaction
 from app.models.category import Category
+from app.models.budget import Budget
 
 import os
 from openai import OpenAI
@@ -279,6 +280,28 @@ def get_dashboard_overview(db: Session, current_user: dict, year: int, month: in
     category = get_category_stats(db, current_user, year, month)
     daily = get_daily_stats(db, current_user, year, month)
     recent = get_recent_transactions(db, current_user)
+
+    user_id = current_user["user_id"]
+
+    # 예산 조회
+    budget = (
+        db.query(Budget)
+        .filter(
+            Budget.user_id == user_id,
+            Budget.year == year,
+            Budget.month == month
+        )
+        .first()
+    )
+
+    budget_amount = budget.amount if budget else 0
+
+    total_expense = summary.get("total_amount", 0)
+
+    remaining = budget_amount - total_expense
+
+    summary["budget"] = budget_amount
+    summary["remaining"] = remaining
 
     return {
         "summary": summary,

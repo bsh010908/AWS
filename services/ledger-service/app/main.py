@@ -6,6 +6,7 @@ from app.routers import transaction_router
 from app.routers import receipt_router
 from app.routers import category_router
 from app.routers import ocr_usage_router
+from app.routers import budget_router
 
 app = FastAPI()
 
@@ -20,6 +21,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(budget_router.router)
 app.include_router(dashboard_router.router)
 app.include_router(transaction_router.router)
 app.include_router(receipt_router.router)
