@@ -27,7 +27,6 @@ def read_me(current_user: User = Depends(get_current_user)):
         "username": current_user.username,
         "email": current_user.email,
         "name": current_user.name,
-        "role": current_user.role,
         "plan": current_user.plan,
         "subscription_status": current_user.subscription_status,
     }

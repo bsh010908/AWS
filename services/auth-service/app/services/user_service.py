@@ -34,11 +34,8 @@ def create_user(user: schemas.UserCreate, db: Session):
         email=user.email,
         password=hashed_pw.decode("utf-8"),
         name=user.name,
-        role="USER",
         plan="FREE",
         subscription_status="NONE",
-        monthly_ocr_used=0,
-        status="ACTIVE",
     )
 
     db.add(new_user)
@@ -69,7 +66,6 @@ def login_user(user: schemas.UserLogin, db: Session):
         data={
             "sub": str(db_user.user_id),
             "plan": db_user.plan,
-            "role": db_user.role,
         }
     )
 

@@ -22,7 +22,6 @@ def get_current_user(
 
         user_id = payload.get("sub")
         plan = payload.get("plan")
-        role = payload.get("role")
 
         if user_id is None:
             raise HTTPException(
@@ -33,7 +32,6 @@ def get_current_user(
         return {
             "user_id": int(user_id),
             "plan": plan,
-            "role": role,
         }
 
     except jwt.PyJWTError:

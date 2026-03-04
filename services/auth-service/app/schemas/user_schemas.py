@@ -20,8 +20,6 @@ class UserResponse(BaseModel):
     username: str
     email: str
     name: str
-    role: str
-    status: str
     plan: str | None = None
     subscription_status: str | None = None
 
