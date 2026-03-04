@@ -42,6 +42,61 @@ def create_checkout_session(current_user=Depends(get_current_user)):
     return {"checkout_url": session.url}
 
 
+@router.post("/cancel-subscription")
+def cancel_subscription(current_user=Depends(get_current_user)):
+    db: Session = SessionLocal()
+    try:
+        user = db.query(User).filter(User.user_id == current_user.user_id).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        subscription_id = user.stripe_subscription_id
+        customer_id = user.stripe_customer_id
+
+        if not customer_id and user.email:
+            customers = stripe.Customer.list(email=user.email, limit=1)
+            if customers.data:
+                customer_id = customers.data[0].id
+                user.stripe_customer_id = customer_id
+
+        subscription = None
+
+        if subscription_id:
+            try:
+                subscription = stripe.Subscription.retrieve(subscription_id)
+            except Exception:
+                subscription = None
+
+        if not subscription and customer_id:
+            subs = stripe.Subscription.list(
+                customer=customer_id,
+                status="all",
+                limit=10,
+            )
+            subscription = next(
+                (
+                    s for s in subs.data
+                    if s.status not in ("canceled", "incomplete_expired")
+                ),
+                None,
+            )
+            if subscription:
+                subscription_id = subscription.id
+
+        if subscription and subscription.status not in ("canceled", "incomplete_expired"):
+            stripe.Subscription.delete(subscription_id)
+
+        # 취소 API는 멱등하게 처리: Stripe 상 구독이 없더라도 로컬 상태는 FREE로 동기화
+        user.plan = "FREE"
+        user.subscription_status = "CANCELED"
+        user.stripe_subscription_id = None
+        db.commit()
+
+        return {"message": "구독 취소 처리 완료"}
+    finally:
+        db.close()
+
+
 @router.post("/webhook")
 async def stripe_webhook(request: Request):
 
@@ -65,6 +120,8 @@ async def stripe_webhook(request: Request):
         if user:
             user.plan = "PRO"
             user.subscription_status = "ACTIVE"
+            user.stripe_customer_id = session.get("customer")
+            user.stripe_subscription_id = session.get("subscription")
             db.commit()
 
         db.close()

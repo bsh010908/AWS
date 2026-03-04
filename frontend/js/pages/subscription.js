@@ -71,8 +71,28 @@ export async function afterRenderSubscription() {
     statusEl.textContent = "활성 상태 (PRO)";
     actionsEl.innerHTML = `
       <button class="secondary-btn" disabled>결제 정보 관리</button>
-      <button class="danger-btn" disabled>구독 취소</button>
+      <button id="cancelSubscriptionBtn" class="danger-btn">구독 취소</button>
     `;
+
+    document.getElementById("cancelSubscriptionBtn").onclick = async () => {
+      if (!confirm("구독을 취소하시겠습니까?")) return;
+
+      const cancelBtn = document.getElementById("cancelSubscriptionBtn");
+      cancelBtn.disabled = true;
+      cancelBtn.textContent = "취소 처리 중...";
+
+      try {
+        await apiRequest(AUTH_BASE, "/billing/cancel-subscription", {
+          method: "POST",
+        });
+
+        window.location.href = `${window.location.pathname}?billing=unsubscribed#/subscription`;
+      } catch {
+        alert("구독 취소에 실패했습니다. 다시 시도해 주세요.");
+        cancelBtn.disabled = false;
+        cancelBtn.textContent = "구독 취소";
+      }
+    };
   } else {
     statusEl.textContent = "FREE 플랜 이용 중";
     actionsEl.innerHTML = `
@@ -129,6 +149,9 @@ export async function afterRenderSubscription() {
       billingResult.classList.add("success");
     } else if (billingState === "cancel") {
       billingResult.textContent = "결제가 취소되었습니다.";
+      billingResult.classList.add("cancel");
+    } else if (billingState === "unsubscribed") {
+      billingResult.textContent = "구독이 취소되었습니다. 다음 결제부터 청구되지 않습니다.";
       billingResult.classList.add("cancel");
     }
 

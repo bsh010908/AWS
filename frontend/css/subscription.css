@@ -101,6 +101,11 @@
   color: #b91c1c;
   padding: 8px 14px;
   border-radius: 10px;
+  cursor: pointer;
+}
+
+.danger-btn:disabled {
+  opacity: 0.6;
   cursor: not-allowed;
 }
 
