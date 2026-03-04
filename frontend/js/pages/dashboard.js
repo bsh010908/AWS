@@ -15,11 +15,23 @@ export async function renderDashboard() {
   return `
     <div class="dashboard">
 
-      <div class="header">
-        <div class="header-right">
-          <div class="plan-badge" id="planBadge">-</div>
+
+        <div class="header">
+
+          <div class="header-title">
+            대시보드
+          </div>
+
+          <div class="header-controls">
+
+          <select id="yearSelect"></select>
+          <select id="monthSelect"></select>
+
+          <div class="plan-badge" id="planBadge">PRO</div>
+
+          </div>
+
         </div>
-      </div>
 
       <!-- KPI -->
       <div class="kpi-section">
@@ -61,7 +73,6 @@ export async function renderDashboard() {
         <div class="chart-card">
           <div class="chart-header">
             <h3>카테고리별 소비</h3>
-            <select id="monthSelect"></select>
           </div>
           <div class="chart-wrapper">
             <canvas id="categoryChart"></canvas>
@@ -110,8 +121,13 @@ export async function renderDashboard() {
 =========================== */
 
 export async function afterRenderDashboard() {
+  const now = new Date();
+  selectedYear = now.getFullYear();
+  selectedMonth = now.getMonth() + 1;
+
   initMonthSelector();
-  await loadDashboard();
+
+  await loadDashboard(selectedYear, selectedMonth);
 }
 
 /* ===========================
@@ -123,10 +139,7 @@ async function loadDashboard(year, month) {
     const user = await apiRequest(AUTH_BASE, `/me`);
     document.getElementById("planBadge").innerText = user.plan;
 
-    const now = new Date();
-    selectedYear = year || now.getFullYear();
-    selectedMonth = month || now.getMonth() + 1;
-
+ 
     const data = await apiRequest(
       LEDGER_BASE,
       `/dashboard/overview?year=${selectedYear}&month=${selectedMonth}`,
@@ -220,30 +233,66 @@ function renderMonthlyChart(data) {
    MONTH SELECTOR
 =========================== */
 
-function initMonthSelector() {
-  const select = document.getElementById("monthSelect");
-  if (!select) return;
+function initMonthSelector(){
 
-  select.innerHTML = "";
+  const yearSelect = document.getElementById("yearSelect");
+  const monthSelect = document.getElementById("monthSelect");
+
+  if(!yearSelect || !monthSelect) return;
 
   const now = new Date();
-  const currentMonth = now.getMonth() + 1;
+  const currentYear = now.getFullYear();
 
-  for (let i = 1; i <= 12; i++) {
-    const option = document.createElement("option");
+  /* YEAR */
 
-    option.value = i;
-    option.textContent = `${i}월`;
+  yearSelect.innerHTML="";
 
-    if (i === currentMonth) option.selected = true;
+  for(let y=currentYear; y>=currentYear-3; y--){
 
-    select.appendChild(option);
+    const option=document.createElement("option");
+
+    option.value=y;
+    option.textContent=`${y}년`;
+
+    if(y===selectedYear) option.selected=true;
+
+    yearSelect.appendChild(option);
+
   }
 
-  select.addEventListener("change", function () {
-    selectedMonth = Number(this.value);
-    loadDashboard(selectedYear, selectedMonth);
+  /* MONTH */
+
+  monthSelect.innerHTML="";
+
+  for(let m=1; m<=12; m++){
+
+    const option=document.createElement("option");
+
+    option.value=m;
+    option.textContent=`${m}월`;
+
+    if(m===selectedMonth) option.selected=true;
+
+    monthSelect.appendChild(option);
+
+  }
+
+  /* EVENTS */
+
+  yearSelect.addEventListener("change",function(){
+
+    selectedYear=Number(this.value);
+    loadDashboard(selectedYear,selectedMonth);
+
   });
+
+  monthSelect.addEventListener("change",function(){
+
+    selectedMonth=Number(this.value);
+    loadDashboard(selectedYear,selectedMonth);
+
+  });
+
 }
 
 /* ===========================
@@ -259,58 +308,48 @@ function renderSummary(summary, plan) {
 ====================== */
 
   if (summary.budget !== undefined) {
+    document.getElementById("budgetAmount").innerText =
+      summary.budget.toLocaleString() + " 원";
 
-  document.getElementById("budgetAmount").innerText =
-    summary.budget.toLocaleString() + " 원";
+    document.getElementById("remainingAmount").innerText =
+      summary.remaining.toLocaleString() + " 원";
 
-  document.getElementById("remainingAmount").innerText =
-    summary.remaining.toLocaleString() + " 원";
+    let percent = 0;
 
-  let percent = 0;
+    if (summary.budget > 0) {
+      percent = (summary.total_amount / summary.budget) * 100;
+    }
 
-  if (summary.budget > 0) {
-    percent = (summary.total_amount / summary.budget) * 100;
+    percent = Math.min(percent, 100);
+
+    const bar = document.getElementById("budgetProgress");
+
+    if (bar) {
+      bar.style.width = percent + "%";
+
+      if (percent >= 100) {
+        bar.style.background = "#ef4444";
+      } else if (percent >= 80) {
+        bar.style.background = "#f59e0b";
+      } else {
+        bar.style.background = "#111827";
+      }
+    }
+
+    /* 🔥 여기 추가 */
+
+    const warning = document.getElementById("budgetWarning");
+
+    if (warning) {
+      if (percent >= 100) {
+        warning.innerText = "⚠ 예산을 초과했습니다";
+      } else if (percent >= 80) {
+        warning.innerText = "⚠ 예산의 80% 이상 사용했습니다";
+      } else {
+        warning.innerText = "";
+      }
+    }
   }
-
-  percent = Math.min(percent, 100);
-
-  const bar = document.getElementById("budgetProgress");
-
-  if (bar) {
-
-    bar.style.width = percent + "%";
-
-    if (percent >= 100) {
-      bar.style.background = "#ef4444";
-    } 
-    else if (percent >= 80) {
-      bar.style.background = "#f59e0b";
-    } 
-    else {
-      bar.style.background = "#111827";
-    }
-
-  }
-
-  /* 🔥 여기 추가 */
-
-  const warning = document.getElementById("budgetWarning");
-
-  if (warning) {
-
-    if (percent >= 100) {
-      warning.innerText = "⚠ 예산을 초과했습니다";
-    }
-    else if (percent >= 80) {
-      warning.innerText = "⚠ 예산의 80% 이상 사용했습니다";
-    }
-    else {
-      warning.innerText = "";
-    }
-
-  }
-
-}
   document.getElementById("receiptCount").innerText =
     summary.transaction_count + " 건";
 
@@ -416,18 +455,18 @@ function renderRecent(list) {
   }
 
   list.forEach((item) => {
-  const div = document.createElement("div");
+    const div = document.createElement("div");
 
-  div.className = "recent-item";
+    div.className = "recent-item";
 
-  const date = item.occurred_at ? item.occurred_at.slice(0, 10) : "";
+    const date = item.occurred_at ? item.occurred_at.slice(0, 10) : "";
 
-  div.innerHTML = `
+    div.innerHTML = `
     <span>${item.merchant_name || "상호명 없음"}</span>
     <span>${item.amount.toLocaleString()} 원</span>
     <small>${date}</small>
   `;
 
-  container.appendChild(div);
-});
+    container.appendChild(div);
+  });
 }

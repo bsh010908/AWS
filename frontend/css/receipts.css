@@ -11,12 +11,17 @@
 =========================== */
 
 .page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
   margin-bottom: 32px;
 }
 
+.header-right{
+  display:flex;
+  align-items:center;
+  gap:16px;
+}
 .page-title h2 {
   margin: 0;
   font-size: 26px;
@@ -33,6 +38,13 @@
   display: flex;
   align-items: center;
   gap: 14px;
+}
+
+.page-header-bottom{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-top:20px;
 }
 
 /* ===========================
@@ -59,6 +71,15 @@
   box-shadow: 0 0 0 3px rgba(17, 24, 39, 0.1);
 }
 
+.month-picker-wrap{
+  width:140px;
+  display:flex;
+  align-items:center;
+}
+
+.month-picker-wrap.hidden{
+  visibility:hidden;
+}
 /* ===========================
    GRID
 =========================== */
@@ -254,7 +275,58 @@
   display: flex;
   align-items: center;
 }
+/* ================= TABS ================= */
 
+.tabs{
+  display:flex;
+  gap:6px;
+
+  background:#f3f4f6;
+  padding:4px;
+  border-radius:12px;
+  margin-right:auto;
+  margin-left:-6px;
+  width:fit-content;
+}
+
+.tab-btn{
+
+  border:1px solid transparent; /* 🔥 크기 고정 */
+
+  background:transparent;
+
+  padding:8px 14px;
+
+  border-radius:8px;
+
+  font-size:13px;
+  font-weight:600;
+
+  color:#6b7280;
+
+  cursor:pointer;
+
+  transition:all 0.2s ease;
+}
+
+.tab-btn:hover{
+  color:#111827;
+}
+
+.tab-btn.active{
+
+  background:#ffffff;
+
+  color:#111827;
+
+  border:1px solid #e5e7eb; /* 🔥 동일 두께 */
+
+  box-shadow:0 1px 2px rgba(0,0,0,0.05);
+}
+
+.month-picker-wrap{
+  width:140px;
+}
 /* ===========================
    EMPTY STATE
 =========================== */

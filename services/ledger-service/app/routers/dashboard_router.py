@@ -115,7 +115,7 @@ def get_recent_transactions(
     transactions = (
         db.query(Transaction)
         .filter(Transaction.user_id == current_user["user_id"])
-        .order_by(desc(Transaction.created_at))
+        .order_by(desc(Transaction.occurred_at))   # ✅ 거래 날짜 기준
         .limit(limit)
         .all()
     )
@@ -125,13 +125,10 @@ def get_recent_transactions(
             "id": tx.tx_id,
             "amount": tx.amount,
             "merchant_name": tx.merchant_name,
-            "created_at": tx.created_at.isoformat(),
-            "source_type": tx.source_type,
+            "occurred_at": tx.occurred_at.isoformat() if tx.occurred_at else None,
         }
         for tx in transactions
     ]
-
-
 # ===============================
 # 연도별 월 합계
 # ===============================
@@ -229,7 +226,7 @@ def get_transaction_detail(
         "memo": tx.memo,
         "occurred_at": tx.occurred_at.isoformat() if tx.occurred_at else None,
         "document_id": tx.document_id,
-        "merchant_name": doc.merchant_name if doc else None,
+        "merchant_name": tx.merchant_name,
         "document_total_amount": doc.total_amount if doc else None,
         "document_occurred_at": doc.occurred_at.isoformat()
         if doc and doc.occurred_at

@@ -226,11 +226,7 @@ def get_recent_transactions(db: Session, current_user: dict, limit: int = 5):
             "category": tx.category.name if tx.category else None,
             "occurred_at": tx.occurred_at,
             "memo": tx.memo,
-            "merchant_name": (
-                tx.document.merchant_name
-                if hasattr(tx, "document") and tx.document and tx.document.merchant_name
-                else None
-            ),
+            "merchant_name": tx.merchant_name,
         }
         for tx in transactions
     ]

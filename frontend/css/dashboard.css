@@ -6,237 +6,231 @@
   padding: 32px;
 }
 
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+/* ================= HEADER ================= */
+
+.header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:28px;
 }
 
-.brand {
-  font-size: 22px;
-  font-weight: 600;
+.header-title{
+  font-size:24px;
+  font-weight:700;
+  color:#111827;
 }
 
-.plan-badge {
-  padding: 6px 14px;
-  border-radius: 20px;
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
-  color: white;
-  font-size: 12px;
-  font-weight: 500;
+.header-controls{
+  display:flex;
+  align-items:center;
+  gap:12px;
 }
 
-.header-right {
-  display: flex;
-  align-items: center;
-  gap: 12px;
+/* year-month select */
+
+#yearSelect,
+#monthSelect{
+
+  padding:8px 42px 8px 14px;
+  border-radius:12px;
+  border:1px solid #e5e7eb;
+
+  background:#ffffff;
+
+  font-size:14px;
+  font-weight:500;
+
+  cursor:pointer;
+
+  appearance:none;
+  -webkit-appearance:none;
+  -moz-appearance:none;
+
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24'><path fill='%236b7280' d='M7 10l5 5 5-5z'/></svg>");
+  background-repeat:no-repeat;
+
+  background-position:right 16px center;
+
+  box-sizing:border-box;
+
 }
 
-.ghost-btn {
-  background: white;
-  border: 1px solid #e5e7eb;
-  padding: 6px 14px;
-  border-radius: 8px;
-  cursor: pointer;
+/* 년도 */
+#yearSelect{
+  width:130px;
+}
+
+/* 월 */
+#monthSelect{
+  width:100px;
+}
+
+/* plan badge */
+
+.plan-badge{
+  padding:6px 14px;
+  border-radius:20px;
+  background:linear-gradient(135deg,#6366f1,#8b5cf6);
+  color:white;
+  font-size:12px;
+  font-weight:600;
 }
 
 /* ================= KPI ================= */
 
 .kpi-section {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
-  margin-top: 28px;
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:16px;
+  margin-top:20px;
 }
 
-.kpi-card {
-  background: white;
-  padding: 22px;
-  border-radius: 16px;
-  border: 1px solid #e5e7eb;
+.kpi-card{
+  background:white;
+  padding:22px;
+  border-radius:16px;
+  border:1px solid #e5e7eb;
 }
 
-.highlight {
-  background: #f8fafc;
-  border: 1px solid #e0e7ff;
+.highlight{
+  background:#f8fafc;
+  border:1px solid #e0e7ff;
 }
 
-.kpi-card span {
-  font-size: 13px;
-  color: #6b7280;
+.kpi-card span{
+  font-size:13px;
+  color:#6b7280;
 }
 
-.kpi-card h2 {
-  margin-top: 8px;
-  font-size: 22px;
+.kpi-card h2{
+  margin-top:8px;
+  font-size:22px;
 }
 
-/* ================= MAIN CHART AREA ================= */
+/* ================= MAIN CHART ================= */
 
-.main-section {
-  display: grid;
-  grid-template-columns: 1.2fr 1fr;
-  gap: 18px;
-  margin-top: 28px;
-  margin-bottom: 28px;
+.main-section{
+  display:grid;
+  grid-template-columns:1.2fr 1fr;
+  gap:18px;
+  margin-top:28px;
+  margin-bottom:28px;
 }
 
-.chart-card {
-  background: white;
-  padding: 22px;
-  border-radius: 18px;
-  border: 1px solid #e5e7eb;
+.chart-card{
+  background:white;
+  padding:22px;
+  border-radius:18px;
+  border:1px solid #e5e7eb;
 }
 
-.chart-wrapper {
-  position: relative;
-  height: 240px;
-  margin-top: 16px;
+.chart-card h3{
+  font-size:16px;
+  font-weight:600;
+  color:#111827;
+}
+
+.chart-wrapper{
+  position:relative;
+  height:240px;
+  margin-top:16px;
 }
 
 #categoryChart,
 #dailyChart,
-#monthlyChart {
-  width: 100% !important;
-  height: 100% !important;
-}
-
-/* ================= MONTH SELECT ================= */
-
-.chart-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  position: relative;
-}
-
-#monthSelect {
-  appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-
-  padding: 6px 30px 6px 12px;
-  border-radius: 8px;
-  border: 1px solid #e5e7eb;
-
-  background-color: #ffffff;
-
-  font-size: 13px;
-  font-weight: 500;
-  color: #1f2937;
-
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-#monthSelect:hover {
-  border-color: #c7d2fe;
-  background: #f9fafb;
-}
-
-#monthSelect:focus {
-  outline: none;
-  border-color: #6366f1;
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
-}
-
-.chart-header::after {
-  content: "▾";
-  position: absolute;
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  pointer-events: none;
-  font-size: 12px;
-  color: #6b7280;
+#monthlyChart{
+  width:100% !important;
+  height:100% !important;
 }
 
 /* ================= RECENT + PREDICT ================= */
 
-.bottom-section {
-  display: grid;
-  grid-template-columns: 1.2fr 1fr;
-  gap: 18px;
-  margin-top: 28px;
+.bottom-section{
+  display:grid;
+  grid-template-columns:1.2fr 1fr;
+  gap:18px;
+  margin-top:28px;
 }
 
 .recent-card,
-.predict-card {
-  background: white;
-  padding: 22px;
-  border-radius: 18px;
-  border: 1px solid #e5e7eb;
+.predict-card{
+  background:white;
+  padding:22px;
+  border-radius:18px;
+  border:1px solid #e5e7eb;
 }
 
 .recent-item{
-  display: flex;
-  align-items: center;
-  padding: 10px 0;
-  border-bottom: 1px solid #e5e7eb;
+  display:flex;
+  align-items:center;
+  padding:10px 0;
+  border-bottom:1px solid #e5e7eb;
 }
 
 .recent-item span:first-child{
-  flex: 1;
+  flex:1;
 }
 
 .recent-item span:nth-child(2){
-  flex: 1;
-  text-align: center;
-  font-weight: 600;
+  flex:1;
+  text-align:center;
+  font-weight:600;
 }
 
 .recent-item small{
-  flex: 1;
-  text-align: right;
-  color: #6b7280;
+  flex:1;
+  text-align:right;
+  color:#6b7280;
 }
 
 /* ================= MONTH COMPARE ================= */
 
-.month-compare {
-  margin-top: 6px;
-  font-size: 13px;
-  font-weight: 500;
+.month-compare{
+  margin-top:6px;
+  font-size:13px;
+  font-weight:500;
 }
 
-.month-compare.up {
-  color: #ef4444;
+.month-compare.up{
+  color:#ef4444;
 }
 
-.month-compare.down {
-  color: #2563eb;
+.month-compare.down{
+  color:#2563eb;
 }
 
-.month-compare.same {
-  color: #6b7280;
+.month-compare.same{
+  color:#6b7280;
 }
 
-/* ================= 최근 12개월 그래프 ================= */
+/* ================= 12 MONTH CHART ================= */
 
-.chart-card.wide {
-  grid-column: span 2;
+.chart-card.wide{
+  grid-column:span 2;
 }
 
-/* ================= 예산 ================= */
-.budget-info {
-  margin-top: 6px;
-  font-size: 13px;
-  color: #6b7280;
+/* ================= BUDGET ================= */
+
+.budget-info{
+  margin-top:6px;
+  font-size:13px;
+  color:#6b7280;
 }
 
-.budget-bar {
-  height: 6px;
-  background: #e5e7eb;
-  border-radius: 10px;
-  margin-top: 6px;
-  overflow: hidden;
+.budget-bar{
+  height:6px;
+  background:#e5e7eb;
+  border-radius:10px;
+  margin-top:6px;
+  overflow:hidden;
 }
 
-#budgetProgress {
-  height: 100%;
-  width: 0%;
-  background: #111827;
-  transition: width 0.3s ease;
+#budgetProgress{
+  height:100%;
+  width:0%;
+  background:#111827;
+  transition:width 0.3s ease;
 }
 
 .budget-warning{
@@ -244,20 +238,20 @@
   font-size:12px;
   color:#ef4444;
 }
+
 /* ================= MOBILE ================= */
 
-@media (max-width: 900px) {
+@media (max-width:900px){
 
   .kpi-section,
   .main-section,
-  .bottom-section {
-    grid-template-columns: 1fr;
+  .bottom-section{
+    grid-template-columns:1fr;
   }
 
-  .chart-card.wide {
-    margin-top: 24px;
-    grid-column: span 1;
-    
+  .chart-card.wide{
+    margin-top:24px;
+    grid-column:span 1;
   }
 
 }

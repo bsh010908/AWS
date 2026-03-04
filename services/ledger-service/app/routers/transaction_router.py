@@ -114,6 +114,45 @@ def get_transactions(
         "content": content,
     }
 
+# ===============================
+# 최근 추가 영수증
+# ===============================
+@router.get("/recent")
+def get_recent_transactions(
+    limit: int = 20,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
+):
+
+    user_id = current_user["user_id"]
+
+    txs = (
+        db.query(Transaction)
+        .options(joinedload(Transaction.category))
+        .options(joinedload(Transaction.document))
+        .filter(Transaction.user_id == user_id)
+        .order_by(desc(Transaction.created_at))
+        .limit(limit)
+        .all()
+    )
+
+    return [
+        {
+            "id": tx.tx_id,
+            "amount": tx.amount,
+            "category": tx.category.name if tx.category else None,
+            "occurred_at": tx.occurred_at.isoformat() if tx.occurred_at else None,
+            "merchant_name": tx.merchant_name,
+            "memo": tx.memo,
+            "source_type": tx.source_type,
+            "ai_confidence": (
+                float(tx.document.ai_confidence)
+                if tx.source_type == "OCR" and tx.document and tx.document.ai_confidence is not None
+                else None
+            ),
+        }
+        for tx in txs
+    ]
 
 # ===============================
 # 거래 상세 조회

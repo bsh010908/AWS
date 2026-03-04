@@ -5,6 +5,7 @@ let currentMonth;
 let currentPage = 0;
 let totalPages = 0;
 let currentSourceType = null; // null = 전체, "OCR" = AI만
+let currentTab = "MONTH";
 const pageSize = 10;
 
 /* =====================================================
@@ -16,6 +17,7 @@ export async function renderReceipts() {
 
       <div class="page-header">
 
+        <!-- TITLE -->
         <div class="page-title">
           <h2>거래내역</h2>
           <p class="page-sub">
@@ -23,29 +25,47 @@ export async function renderReceipts() {
           </p>
         </div>
 
-        <div class="page-actions">
+        <!-- HEADER BOTTOM -->
+        <div class="page-header-bottom">
 
-          <div class="month-picker-wrap">
-            <input 
-              type="month" 
-              id="monthPicker" 
-              class="month-picker" 
-            />
+          <!-- TABS LEFT -->
+          <div class="tabs">
+            <button class="tab-btn active" data-tab="MONTH">
+              거래내역
+            </button>
+
+            <button class="tab-btn" data-tab="RECENT">
+              최근 추가
+            </button>
           </div>
 
-          <button id="addTxBtn" class="primary-btn">
-            + 거래 추가
-          </button>
+          <!-- ACTIONS RIGHT -->
+          <div class="page-actions">
 
-          <button id="aiOnlyBtn" class="secondary-btn">
-             AI만 보기
-          </button>
+            <div class="month-picker-wrap">
+              <input 
+                type="month" 
+                id="monthPicker" 
+                class="month-picker"
+              />
+            </div>
+
+            <button id="addTxBtn" class="primary-btn">
+              + 거래 추가
+            </button>
+
+            <button id="aiOnlyBtn" class="secondary-btn">
+              AI만 보기
+            </button>
+
+          </div>
 
         </div>
 
       </div>
 
       <div id="transactionList" class="tx-grid"></div>
+
       <div id="modalRoot"></div>
 
     </section>
@@ -60,41 +80,119 @@ export async function afterRenderReceipts() {
   const monthInput = document.getElementById("monthPicker");
   monthInput.value = `${currentYear}-${String(currentMonth).padStart(2, "0")}`;
 
+  /* =========================
+     탭 이벤트
+  ========================= */
+
+  document.querySelectorAll(".tab-btn").forEach((btn) => {
+    btn.onclick = async () => {
+
+      document.querySelectorAll(".tab-btn")
+        .forEach(b => b.classList.remove("active"));
+
+      btn.classList.add("active");
+
+      currentTab = btn.dataset.tab;
+
+      currentPage = 0;
+
+      await loadTransactions();
+    };
+  });
+
+  /* =========================
+     거래 추가
+  ========================= */
+
   document.getElementById("addTxBtn").onclick = openCreateTxModal;
+
+  /* =========================
+     AI 필터
+  ========================= */
+
   document.getElementById("aiOnlyBtn").onclick = async () => {
+
     if (currentSourceType === "OCR") {
-      currentSourceType = null; // 전체 보기
+      currentSourceType = null;
     } else {
-      currentSourceType = "OCR"; // AI만 보기
+      currentSourceType = "OCR";
     }
 
     currentPage = 0;
+
     await loadTransactions();
   };
 
-  await loadTransactions();
+  /* =========================
+     월 변경
+  ========================= */
 
   monthInput.onchange = async () => {
+
     const [y, m] = monthInput.value.split("-");
+
     currentYear = Number(y);
     currentMonth = Number(m);
+
     currentPage = 0;
+
     await loadTransactions();
   };
-}
 
+  /* =========================
+     최초 로딩
+  ========================= */
+
+  await loadTransactions();
+}
 /* =====================================================
    리스트 로딩
 ===================================================== */
 async function loadTransactions() {
-  const sourceParam = currentSourceType
-    ? `&source_type=${currentSourceType}`
-    : "";
 
-  const data = await apiRequest(
-    LEDGER_BASE,
-    `/transactions?year=${currentYear}&month=${currentMonth}&page=${currentPage}&size=${pageSize}${sourceParam}`,
-  );
+  const monthWrap = document.querySelector(".month-picker-wrap");
+
+  let data;
+
+  /* =========================
+     최근 추가 탭
+  ========================= */
+
+  if (currentTab === "RECENT") {
+
+    monthWrap.classList.add("hidden");
+
+    const list = await apiRequest(
+      LEDGER_BASE,
+      "/transactions/recent"
+    );
+
+    data = {
+      content: list,
+      total_pages: 1,
+      page: 0
+    };
+
+  } 
+
+  /* =========================
+     월 거래내역 탭
+  ========================= */
+
+  else {
+
+    monthWrap.classList.remove("hidden");
+
+    const sourceParam = currentSourceType
+      ? `&source_type=${currentSourceType}`
+      : "";
+
+    data = await apiRequest(
+      LEDGER_BASE,
+      `/transactions?year=${currentYear}&month=${currentMonth}&page=${currentPage}&size=${pageSize}${sourceParam}`
+    );
+
+  }
 
   console.log("응답:", data);
 
