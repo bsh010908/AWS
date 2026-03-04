@@ -1,6 +1,7 @@
-from fastapi import APIRouter, Depends, Query, HTTPException, Body
+from fastapi import APIRouter, Depends, Query, HTTPException
 from sqlalchemy.orm import Session
-from datetime import datetime
+from datetime import datetime, timedelta
+from sqlalchemy import desc, extract, func
 
 from app.db.session import get_db
 from app.models.transaction import Transaction
@@ -8,9 +9,8 @@ from app.services.dashboard_service import (
     get_monthly_summary,
     get_category_stats,
     get_daily_stats,
-    get_recent_transactions,
     get_dashboard_overview,
-    generate_ai_insight,   
+    generate_ai_insight,
 )
 from app.core.security import get_current_user
 
@@ -27,7 +27,7 @@ def _resolve_year_month(year: int | None, month: int | None):
 
 
 # ===============================
-# 통합 대시보드 (가장 중요)
+# 통합 대시보드
 # ===============================
 @router.get("/overview")
 def dashboard_overview(
@@ -41,7 +41,7 @@ def dashboard_overview(
 
 
 # ===============================
-# 월 요약 (단독 호출용)
+# 월 요약
 # ===============================
 @router.get("/summary")
 def monthly_summary(
@@ -83,17 +83,7 @@ def daily_stats(
 
 
 # ===============================
-# 최근 거래 목록
-# ===============================
-@router.get("/recent")
-def recent_transactions(
-    db: Session = Depends(get_db),
-    current_user: dict = Depends(get_current_user),
-):
-    return get_recent_transactions(db, current_user)
-
-# ===============================
-# 🔥 AI 인사이트 전용 API
+# AI 인사이트
 # ===============================
 @router.get("/ai-insight")
 def get_ai_insight(
@@ -112,6 +102,103 @@ def get_ai_insight(
 
     return {"ai_insight": insight}
 
+
+# ===============================
+# 최근 거래
+# ===============================
+@router.get("/recent")
+def get_recent_transactions(
+    limit: int = Query(5),
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user),
+):
+    transactions = (
+        db.query(Transaction)
+        .filter(Transaction.user_id == current_user["user_id"])
+        .order_by(desc(Transaction.created_at))
+        .limit(limit)
+        .all()
+    )
+
+    return [
+        {
+            "id": tx.tx_id,
+            "amount": tx.amount,
+            "merchant_name": tx.merchant_name,
+            "created_at": tx.created_at.isoformat(),
+            "source_type": tx.source_type,
+        }
+        for tx in transactions
+    ]
+
+
+# ===============================
+# 연도별 월 합계
+# ===============================
+@router.get("/yearly-summary")
+def get_yearly_summary(
+    year: int,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user),
+):
+    results = (
+        db.query(
+            extract("month", Transaction.occurred_at).label("month"),
+            func.sum(Transaction.amount).label("total"),
+        )
+        .filter(Transaction.user_id == current_user["user_id"])
+        .filter(extract("year", Transaction.occurred_at) == year)
+        .group_by(extract("month", Transaction.occurred_at))
+        .order_by(extract("month", Transaction.occurred_at))
+        .all()
+    )
+
+    return [
+        {
+            "month": int(r.month),
+            "total": float(r.total),
+        }
+        for r in results
+    ]
+
+
+# ===============================
+# 최근 12개월 소비
+# ===============================
+@router.get("/last-12-months")
+def last_12_months(
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user),
+):
+    now = datetime.now()
+    one_year_ago = now - timedelta(days=365)
+
+    results = (
+        db.query(
+            extract("year", Transaction.occurred_at).label("year"),
+            extract("month", Transaction.occurred_at).label("month"),
+            func.sum(Transaction.amount).label("total"),
+        )
+        .filter(Transaction.user_id == current_user["user_id"])
+        .filter(Transaction.occurred_at >= one_year_ago)
+        .group_by(
+            extract("year", Transaction.occurred_at),
+            extract("month", Transaction.occurred_at),
+        )
+        .order_by(
+            extract("year", Transaction.occurred_at),
+            extract("month", Transaction.occurred_at),
+        )
+        .all()
+    )
+
+    return [
+        {
+            "month": f"{int(r.year)}-{int(r.month):02d}",
+            "total": float(r.total),
+        }
+        for r in results
+    ]
 
 
 # ===============================
@@ -141,8 +228,6 @@ def get_transaction_detail(
         "category_id": tx.category_id,
         "memo": tx.memo,
         "occurred_at": tx.occurred_at.isoformat() if tx.occurred_at else None,
-
-        # OCR 문서
         "document_id": tx.document_id,
         "merchant_name": doc.merchant_name if doc else None,
         "document_total_amount": doc.total_amount if doc else None,
@@ -150,5 +235,3 @@ def get_transaction_detail(
         if doc and doc.occurred_at
         else None,
     }
-
-

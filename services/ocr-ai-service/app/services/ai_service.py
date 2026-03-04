@@ -2,6 +2,7 @@ from openai import OpenAI, RateLimitError
 from dotenv import load_dotenv
 import os
 import json
+from datetime import datetime
 
 load_dotenv()
 
@@ -9,6 +10,8 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 
 def classify_receipt(text: str):
+
+    current_year = datetime.now().year
 
     prompt = f"""
     아래 영수증 텍스트를 분석해서 정보를 추출해라.
@@ -27,12 +30,18 @@ def classify_receipt(text: str):
         "category": "",
         "confidence": 0.0,
         "amount": 0,
-        "merchant_name": ""
+        "merchant_name": "",
+        "date": ""
     }}
 
-    merchant_name은 상호명만 작성하라.
-    amount는 최종 결제 금액이다.
-    confidence는 0~1 사이 숫자다.
+    규칙:
+    - merchant_name은 상호명만 작성하라.
+    - amount는 최종 결제 금액이다.
+    - date는 반드시 YYYY-MM-DD 형식으로 반환하라.
+    - 영수증에 연도가 없으면 반드시 {current_year}년으로 반환하라.
+    - 날짜가 전혀 없으면 빈 문자열 "" 로 반환하라.
+    - confidence는 0~1 사이 숫자다.
+    - JSON 외 다른 텍스트는 절대 출력하지 마라.
 
     영수증 텍스트:
     {text}
@@ -43,7 +52,7 @@ def classify_receipt(text: str):
             model="gpt-4o-mini",
             messages=[{"role": "user", "content": prompt}],
             temperature=0.2,
-            max_tokens=120
+            max_tokens=180
         )
 
         content = response.choices[0].message.content.strip()
@@ -54,9 +63,11 @@ def classify_receipt(text: str):
 
         data = json.loads(content)
 
+        # 타입 정리
         data["amount"] = float(data.get("amount", 0))
         data["confidence"] = float(data.get("confidence", 0))
         data["merchant_name"] = data.get("merchant_name", "").strip()
+        data["date"] = data.get("date", "").strip()
 
     except RateLimitError:
         print("⚠ OpenAI quota 초과 → 기타로 처리")
@@ -65,7 +76,8 @@ def classify_receipt(text: str):
             "category": "기타",
             "confidence": 0.0,
             "amount": 0,
-            "merchant_name": ""
+            "merchant_name": "",
+            "date": ""
         }
 
     except Exception as e:
@@ -75,7 +87,8 @@ def classify_receipt(text: str):
             "category": "기타",
             "confidence": 0.0,
             "amount": 0,
-            "merchant_name": ""
+            "merchant_name": "",
+            "date": ""
         }
 
     # 🔥 신뢰도 fallback

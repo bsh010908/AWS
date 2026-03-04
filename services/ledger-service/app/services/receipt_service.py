@@ -36,16 +36,28 @@ def save_receipt(db: Session, user_id: int, classification: dict, raw_text: str)
     db.add(document)
     db.flush()  # document_id 생성
 
-    # 🔹 Transaction 저장 (🔥 여기 중요 수정)
+    # 🔥 날짜 처리
+    raw_date = classification.get("date")
+
+    try:
+        occurred_at = (
+            datetime.fromisoformat(raw_date)
+            if raw_date
+            else datetime.now()
+        )
+    except Exception:
+        occurred_at = datetime.now()
+
+    # 🔹 Transaction 저장 (AI 자동 등록)
     transaction = Transaction(
         user_id=user_id,
         document_id=document.document_id,
-        merchant_name=document.merchant_name,     # 🔥 추가
+        merchant_name=document.merchant_name,
         amount=document.total_amount,
         category_id=category.category_id if category else None,
-        occurred_at=datetime.now(),
+        occurred_at=occurred_at,        # 🔥 여기 수정
         memo="AI 자동 등록",
-        source_type="OCR"                        # 🔥 추가
+        source_type="OCR"
     )
 
     db.add(transaction)
@@ -60,5 +72,6 @@ def save_receipt(db: Session, user_id: int, classification: dict, raw_text: str)
         "category": category.name if category else "기타",
         "amount": transaction.amount,
         "merchant_name": transaction.merchant_name,
-        "ai_confidence": document.ai_confidence
+        "ai_confidence": document.ai_confidence,
+        "occurred_at": transaction.occurred_at
     }
