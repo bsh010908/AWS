@@ -8,6 +8,21 @@
   margin-bottom: 30px;
 }
 
+.billing-result {
+  min-height: 22px;
+  margin: -10px 0 18px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.billing-result.success {
+  color: #166534;
+}
+
+.billing-result.cancel {
+  color: #b45309;
+}
+
 /* ===== GRID ===== */
 
 .subscription-grid {
@@ -78,6 +93,15 @@
 
 .full-btn {
   width: 100%;
+}
+
+.danger-btn {
+  border: 1px solid #ef4444;
+  background: #fff5f5;
+  color: #b91c1c;
+  padding: 8px 14px;
+  border-radius: 10px;
+  cursor: not-allowed;
 }
 
 /* ===== USAGE ===== */
