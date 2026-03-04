@@ -118,6 +118,7 @@ export async function afterRenderReceipts() {
       currentSourceType = "OCR";
     }
 
+    syncAiOnlyButtonState();
     currentPage = 0;
 
     await loadTransactions();
@@ -145,10 +146,17 @@ export async function afterRenderReceipts() {
 
   await loadTransactions();
 }
+
+function syncAiOnlyButtonState() {
+  const aiOnlyBtn = document.getElementById("aiOnlyBtn");
+  if (!aiOnlyBtn) return;
+  aiOnlyBtn.classList.toggle("active", currentSourceType === "OCR");
+}
 /* =====================================================
    리스트 로딩
 ===================================================== */
 async function loadTransactions() {
+  syncAiOnlyButtonState();
 
   const monthWrap = document.querySelector(".month-picker-wrap");
 

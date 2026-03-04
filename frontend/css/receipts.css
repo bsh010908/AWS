@@ -12,8 +12,9 @@
 
 .page-header {
   display: grid;
-  grid-template-columns: 1fr auto;
-  align-items: center;
+  grid-template-columns: 1fr;
+  align-items: start;
+  gap: 16px;
   margin-bottom: 32px;
 }
 
@@ -42,9 +43,9 @@
 
 .page-header-bottom{
   display:flex;
-  justify-content:space-between;
+  justify-content: space-between;
   align-items:center;
-  margin-top:20px;
+  width: 100%;
 }
 
 /* ===========================
@@ -87,6 +88,8 @@
 .tx-grid {
   display: grid;
   gap: 16px;
+  min-height: clamp(420px, 58vh, 720px);
+  margin-bottom: 40px;
 }
 
 /* ===========================
@@ -96,6 +99,7 @@
 .tx-card {
   background: #ffffff;
   padding: 20px 22px;
+  min-height: 122px;
   border-radius: 16px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
   transition: all 0.2s ease;
@@ -242,7 +246,7 @@
 =========================== */
 
 .pagination {
-  margin-top: 40px;
+  margin-top: 0;
   display: flex;
   justify-content: center;
   gap: 6px;
@@ -284,9 +288,18 @@
   background:#f3f4f6;
   padding:4px;
   border-radius:12px;
-  margin-right:auto;
-  margin-left:-6px;
+  margin-right:0;
+  margin-left:0;
   width:fit-content;
+  justify-self: start;
+  align-self: center;
+  margin-right: auto;
+}
+
+.page-actions {
+  width: auto;
+  margin-left: auto;
+  justify-content: flex-end;
 }
 
 .tab-btn{
