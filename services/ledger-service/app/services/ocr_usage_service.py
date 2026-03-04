@@ -3,7 +3,7 @@ from fastapi import HTTPException
 from sqlalchemy.orm import Session
 from app.models.ocr_usage import OcrUsageMonthly
 
-FREE_OCR_LIMIT = 10
+FREE_OCR_LIMIT = 50
 
 
 def check_ocr_limit(db: Session, user: dict):
