@@ -115,7 +115,7 @@ def get_recent_transactions(
     transactions = (
         db.query(Transaction)
         .filter(Transaction.user_id == current_user["user_id"])
-        .order_by(desc(Transaction.occurred_at))   # ✅ 거래 날짜 기준
+        .order_by(desc(Transaction.occurred_at))
         .limit(limit)
         .all()
     )

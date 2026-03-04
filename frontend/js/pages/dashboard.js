@@ -454,7 +454,13 @@ function renderRecent(list) {
     return;
   }
 
-  list.forEach((item) => {
+  const sortedList = [...list].sort((a, b) => {
+    const aDate = a?.occurred_at ? a.occurred_at.slice(0, 10) : "";
+    const bDate = b?.occurred_at ? b.occurred_at.slice(0, 10) : "";
+    return bDate.localeCompare(aDate);
+  });
+
+  sortedList.forEach((item) => {
     const div = document.createElement("div");
 
     div.className = "recent-item";
