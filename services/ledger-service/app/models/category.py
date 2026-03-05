@@ -7,19 +7,49 @@ from app.db.session import Base
 class Category(Base):
     __tablename__ = "categories"
 
-    category_id = Column(BigInteger, primary_key=True, autoincrement=True, index=True)
-    user_id = Column(BigInteger, nullable=True, index=True)
+    category_id = Column(
+        BigInteger,
+        primary_key=True,
+        autoincrement=True
+    )
 
-    name = Column(String(100), nullable=False)
-    type = Column(String(20), nullable=False)  # EXPENSE / INCOME
+    user_id = Column(
+        BigInteger,
+        nullable=True,
+        index=True
+    )
 
-    is_active = Column(Boolean, default=True)
+    name = Column(
+        String(100),
+        nullable=False
+    )
 
-    created_at = Column(DateTime, server_default=func.now(), nullable=False)
-    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now(), nullable=False)
+    type = Column(
+        String(20),
+        nullable=False  # EXPENSE / INCOME
+    )
 
+    is_active = Column(
+        Boolean,
+        default=True,
+        nullable=False
+    )
+
+    created_at = Column(
+        DateTime,
+        server_default=func.now(),
+        nullable=False
+    )
+
+    updated_at = Column(
+        DateTime,
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False
+    )
+
+    # Transaction 관계
     transactions = relationship(
         "Transaction",
-        back_populates="category",
-        cascade="all, delete-orphan"
+        back_populates="category"
     )
