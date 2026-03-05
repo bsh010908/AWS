@@ -1,4 +1,4 @@
-from sqlalchemy import Column, BigInteger, String, TIMESTAMP
+from sqlalchemy import Column, BigInteger, String, TIMESTAMP, DateTime
 from sqlalchemy.sql import func
 from ..db.database import Base
 
@@ -17,6 +17,7 @@ class User(Base):
     stripe_customer_id = Column(String(100))
     stripe_subscription_id = Column(String(100))
     subscription_status = Column(String(20), default="NONE")
+    next_billing_at = Column(DateTime, nullable=True)
 
     created_at = Column(TIMESTAMP, server_default=func.now())
     updated_at = Column(TIMESTAMP, server_default=func.now(), onupdate=func.now())

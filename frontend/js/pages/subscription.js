@@ -2,6 +2,17 @@ import { apiRequest, AUTH_BASE, LEDGER_BASE } from "../api.js";
 
 const FREE_OCR_LIMIT = 50;
 
+function formatKstDate(isoString) {
+  if (!isoString) return "-";
+  const date = new Date(isoString);
+  if (Number.isNaN(date.getTime())) return "-";
+  return date.toLocaleDateString("ko-KR", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
+}
+
 export async function renderSubscription() {
   return `
     <section class="page subscription-page">
@@ -60,12 +71,30 @@ export async function afterRenderSubscription() {
 
   const billingState = new URLSearchParams(window.location.search).get("billing");
 
-  const [user, usage] = await Promise.all([
+  if (billingState === "success") {
+    try {
+      await apiRequest(AUTH_BASE, "/billing/sync-subscription", { method: "POST" });
+    } catch {
+      // 웹훅 지연 시에도 최대한 동기화를 시도하고, 실패해도 화면 렌더는 진행
+    }
+  }
+
+  let [user, usage] = await Promise.all([
     apiRequest(AUTH_BASE, "/me"),
     apiRequest(LEDGER_BASE, "/ocr/usage"),
   ]);
 
-  const isPro = user.plan === "PRO";
+  let isPro = user.plan === "PRO";
+
+  if (isPro && !user.next_billing_at) {
+    try {
+      await apiRequest(AUTH_BASE, "/billing/sync-subscription", { method: "POST" });
+      user = await apiRequest(AUTH_BASE, "/me");
+      isPro = user.plan === "PRO";
+    } catch {
+      // 동기화 실패 시 기존 데이터로 렌더
+    }
+  }
 
   if (isPro) {
     statusEl.textContent = "활성 상태 (PRO)";
@@ -85,7 +114,6 @@ export async function afterRenderSubscription() {
         await apiRequest(AUTH_BASE, "/billing/cancel-subscription", {
           method: "POST",
         });
-
         window.location.href = `${window.location.pathname}?billing=unsubscribed#/subscription`;
       } catch {
         alert("구독 취소에 실패했습니다. 다시 시도해 주세요.");
@@ -138,7 +166,9 @@ export async function afterRenderSubscription() {
   }
 
   if (isPro) {
-    nextBilling.textContent = "다음 달 자동 결제 예정";
+    nextBilling.textContent = user.next_billing_at
+      ? formatKstDate(user.next_billing_at)
+      : "결제일 정보 동기화 중";
   } else {
     nextBilling.textContent = "FREE 플랜은 결제 없음";
   }

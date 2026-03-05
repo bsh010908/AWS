@@ -1,4 +1,5 @@
 from pydantic import BaseModel, EmailStr, Field
+from datetime import datetime
 
 # 회원가입 요청 DTO
 class UserCreate(BaseModel):
@@ -22,6 +23,7 @@ class UserResponse(BaseModel):
     name: str
     plan: str | None = None
     subscription_status: str | None = None
+    next_billing_at: datetime | None = None
 
     class Config:
         from_attributes = True
