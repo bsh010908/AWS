@@ -7,7 +7,7 @@ from app.db.session import Base
 class Category(Base):
     __tablename__ = "categories"
 
-    category_id = Column(BigInteger, primary_key=True, index=True)
+    category_id = Column(BigInteger, primary_key=True, autoincrement=True, index=True)
     user_id = Column(BigInteger, nullable=True, index=True)
 
     name = Column(String(100), nullable=False)
@@ -18,10 +18,8 @@ class Category(Base):
     created_at = Column(DateTime, server_default=func.now(), nullable=False)
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now(), nullable=False)
 
-    # 관계 설정
     transactions = relationship(
         "Transaction",
         back_populates="category",
         cascade="all, delete-orphan"
     )
-

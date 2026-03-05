@@ -9,7 +9,9 @@ from app.services.ocr_usage_service import check_ocr_limit, increment_ocr_usage
 
 router = APIRouter(prefix="/receipts", tags=["Receipts"])
 
-OCR_SERVICE_URL = "http://localhost:8003/ocr/classify"
+OCR_SERVICE_URL = "http://ocr-ai-service:8000/ocr/classify"
+
+
 
 
 @router.post("/upload")
