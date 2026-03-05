@@ -230,8 +230,8 @@ def create_checkout_session(current_user=Depends(get_current_user)):
                 "quantity": 1,
             }
         ],
-        success_url="http://localhost:5500/frontend/app.html?billing=success&session_id={CHECKOUT_SESSION_ID}#/subscription",
-        cancel_url="http://localhost:5500/frontend/app.html?billing=cancel#/subscription",
+        success_url="http://localhost:5500/frontend/app.html?billing=success&session_id={CHECKOUT_SESSION_ID}#/settings",
+        cancel_url="http://localhost:5500/frontend/app.html?billing=cancel#/settings",
         customer_email=current_user.email,
         client_reference_id=str(current_user.user_id),
         subscription_data={"metadata": {"user_id": str(current_user.user_id)}},

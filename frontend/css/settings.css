@@ -7,6 +7,15 @@
   margin-bottom: 24px;
 }
 
+.settings-subscription {
+  margin-bottom: 28px;
+}
+
+.setting-section-title {
+  margin: 0 0 12px;
+  font-size: 20px;
+}
+
 .settings-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);

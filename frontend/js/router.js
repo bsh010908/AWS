@@ -2,10 +2,6 @@ import { renderDashboard, afterRenderDashboard } from "./pages/dashboard.js";
 import { renderReceipts, afterRenderReceipts } from "./pages/receipts.js";
 import { renderUpload, afterRenderUpload } from "./pages/upload.js";
 import { renderSettings, afterRenderSettings } from "./pages/settings.js";
-import {
-  renderSubscription,
-  afterRenderSubscription,
-} from "./pages/subscription.js";
 const routes = {
   "/dashboard": {
     render: renderDashboard,
@@ -20,8 +16,8 @@ const routes = {
     after: afterRenderUpload,
   },
   "/subscription": {
-    render: renderSubscription,
-    after: afterRenderSubscription,
+    render: renderSettings,
+    after: afterRenderSettings,
   },
   "/settings": {
     render: renderSettings,
@@ -30,7 +26,8 @@ const routes = {
 };
 
 export async function router() {
-  const hash = location.hash.replace("#", "") || "/dashboard";
+  const rawHash = location.hash.replace("#", "") || "/dashboard";
+  const hash = rawHash === "/subscription" ? "/settings" : rawHash;
   const route = routes[hash];
   const app = document.getElementById("app-content");
 
