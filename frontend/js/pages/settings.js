@@ -158,12 +158,22 @@ export async function renderSettings() {
     </section>
 
     <div class="settings-grid">
-      <div class="settings-card">
+      <div class="settings-card account-card">
         <h3>계정</h3>
         <p>이메일</p>
         <input id="userEmail" type="text" value="불러오는 중..." disabled />
-        <p>비밀번호 변경</p>
-        <button id="changePasswordBtn" class="btn-main">비밀번호 변경</button>
+        <p>새 이메일</p>
+        <input id="newEmailInput" type="email" placeholder="변경할 이메일 입력" />
+        <div class="btn-row account-actions">
+          <button id="changeEmailBtn" class="btn-main">저장</button>
+          <button id="changePasswordBtn" class="btn-main">비밀번호 변경</button>
+        </div>
+        <p class="setting-help" id="emailChangeStatus"></p>
+        <p class="setting-help" id="passwordChangeStatus"></p>
+        <div class="account-corner-actions">
+          <button id="deleteAccountBtn" class="btn-danger corner-delete-btn">회원 탈퇴</button>
+          <p class="setting-help delete-status" id="deleteAccountStatus"></p>
+        </div>
       </div>
 
       <div class="settings-card">
@@ -189,9 +199,9 @@ export async function renderSettings() {
       <div class="settings-card">
         <h3>데이터</h3>
         <button class="btn-sub" disabled>CSV 다운로드 (준비중)</button>
-        <button class="btn-danger" disabled>모든 거래 삭제 (준비중)</button>
       </div>
     </div>
+    <div id="settingsModalRoot"></div>
   </div>
   `;
 }
@@ -199,6 +209,13 @@ export async function renderSettings() {
 export async function afterRenderSettings() {
   const emailInput = document.getElementById("userEmail");
   const changePasswordBtn = document.getElementById("changePasswordBtn");
+  const settingsModalRoot = document.getElementById("settingsModalRoot");
+  const changeEmailBtn = document.getElementById("changeEmailBtn");
+  const newEmailInput = document.getElementById("newEmailInput");
+  const emailChangeStatus = document.getElementById("emailChangeStatus");
+  const passwordChangeStatus = document.getElementById("passwordChangeStatus");
+  const deleteAccountBtn = document.getElementById("deleteAccountBtn");
+  const deleteAccountStatus = document.getElementById("deleteAccountStatus");
 
   const statusEl = document.getElementById("subscriptionStatus");
   const actionsEl = document.getElementById("planActions");
@@ -250,8 +267,168 @@ export async function afterRenderSettings() {
     emailInput.value = "-";
   }
 
-  changePasswordBtn.addEventListener("click", () => {
-    alert("비밀번호 변경 기능은 준비중입니다.");
+  const setInlineStatus = (el, message, isError = false) => {
+    el.textContent = message;
+    el.classList.toggle("error", isError);
+    el.classList.toggle("success", !isError && message.length > 0);
+  };
+
+  const closeModal = () => {
+    settingsModalRoot.innerHTML = "";
+    document.removeEventListener("keydown", handleEscClose);
+  };
+
+  const handleEscClose = (e) => {
+    if (e.key === "Escape") closeModal();
+  };
+
+  const openPasswordChangeModal = () => {
+    settingsModalRoot.innerHTML = `
+      <div class="modal-overlay" id="passwordModalOverlay">
+        <div class="modal">
+          <div class="modal-header">
+            <h3>비밀번호 변경</h3>
+            <button id="closePasswordModalBtn" class="close-btn">×</button>
+          </div>
+          <div class="modal-body">
+            <div class="form-group">
+              <label for="pwCurrentInputModal">현재 비밀번호</label>
+              <input id="pwCurrentInputModal" type="password" placeholder="현재 비밀번호" />
+            </div>
+            <div class="form-group">
+              <label for="pwNewInputModal">새 비밀번호</label>
+              <input id="pwNewInputModal" type="password" placeholder="새 비밀번호" />
+            </div>
+            <div class="form-group">
+              <label for="pwConfirmInputModal">새 비밀번호 확인</label>
+              <input id="pwConfirmInputModal" type="password" placeholder="새 비밀번호 확인" />
+            </div>
+            <p id="passwordModalStatus" class="setting-help"></p>
+          </div>
+          <div class="modal-footer">
+            <button id="cancelPasswordModalBtn" class="btn-sub">취소</button>
+            <button id="submitPasswordModalBtn" class="btn-main">변경하기</button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    document.addEventListener("keydown", handleEscClose);
+
+    const overlay = document.getElementById("passwordModalOverlay");
+    const closeBtn = document.getElementById("closePasswordModalBtn");
+    const cancelBtn = document.getElementById("cancelPasswordModalBtn");
+    const submitBtn = document.getElementById("submitPasswordModalBtn");
+    const currentInput = document.getElementById("pwCurrentInputModal");
+    const newInput = document.getElementById("pwNewInputModal");
+    const confirmInput = document.getElementById("pwConfirmInputModal");
+    const modalStatus = document.getElementById("passwordModalStatus");
+
+    closeBtn.addEventListener("click", closeModal);
+    cancelBtn.addEventListener("click", closeModal);
+    overlay.addEventListener("click", (e) => {
+      if (e.target === overlay) closeModal();
+    });
+
+    submitBtn.addEventListener("click", async () => {
+      const currentPassword = currentInput.value;
+      const newPassword = newInput.value;
+      const newPasswordConfirm = confirmInput.value;
+
+      if (!currentPassword || !newPassword || !newPasswordConfirm) {
+        setInlineStatus(modalStatus, "모든 비밀번호 입력값을 채워 주세요.", true);
+        return;
+      }
+
+      if (newPassword !== newPasswordConfirm) {
+        setInlineStatus(modalStatus, "새 비밀번호 확인이 일치하지 않습니다.", true);
+        return;
+      }
+
+      submitBtn.disabled = true;
+      setInlineStatus(modalStatus, "비밀번호 변경 중...");
+
+      try {
+        await apiRequest(AUTH_BASE, "/me/password", {
+          method: "PUT",
+          body: JSON.stringify({
+            current_password: currentPassword,
+            new_password: newPassword,
+          }),
+        });
+
+        setInlineStatus(passwordChangeStatus, "비밀번호가 변경되었습니다. 다시 로그인합니다.");
+        localStorage.removeItem("access_token");
+        closeModal();
+        setTimeout(() => {
+          window.location.href = "login.html";
+        }, 700);
+      } catch (e) {
+        setInlineStatus(modalStatus, e?.message || "비밀번호 변경에 실패했습니다.", true);
+        submitBtn.disabled = false;
+      }
+    });
+  };
+
+  changeEmailBtn.addEventListener("click", async () => {
+    const newEmail = newEmailInput.value.trim();
+
+    if (!newEmail) {
+      setInlineStatus(emailChangeStatus, "새 이메일을 입력해 주세요.", true);
+      return;
+    }
+
+    changeEmailBtn.disabled = true;
+    setInlineStatus(emailChangeStatus, "저장 중...");
+
+    try {
+      const res = await apiRequest(AUTH_BASE, "/me/email", {
+        method: "PUT",
+        body: JSON.stringify({
+          new_email: newEmail,
+        }),
+      });
+
+      emailInput.value = res?.email || newEmail;
+      newEmailInput.value = "";
+      setInlineStatus(emailChangeStatus, "저장되었습니다.");
+    } catch (e) {
+      setInlineStatus(emailChangeStatus, e?.message || "저장에 실패했습니다.", true);
+    } finally {
+      changeEmailBtn.disabled = false;
+    }
+  });
+
+  changePasswordBtn.addEventListener("click", openPasswordChangeModal);
+
+  deleteAccountBtn.addEventListener("click", async () => {
+    const currentPassword = window.prompt("회원 탈퇴를 위해 현재 비밀번호를 입력해 주세요.");
+    if (!currentPassword) {
+      setInlineStatus(deleteAccountStatus, "현재 비밀번호를 입력해 주세요.", true);
+      return;
+    }
+
+    if (!confirm("회원 탈퇴를 진행하면 계정을 복구할 수 없습니다. 계속하시겠습니까?")) {
+      return;
+    }
+
+    deleteAccountBtn.disabled = true;
+    setInlineStatus(deleteAccountStatus, "회원 탈퇴 처리 중...");
+
+    try {
+      await apiRequest(AUTH_BASE, "/me", {
+        method: "DELETE",
+        body: JSON.stringify({
+          current_password: currentPassword,
+        }),
+      });
+
+      localStorage.removeItem("access_token");
+      window.location.href = "index.html";
+    } catch (e) {
+      setInlineStatus(deleteAccountStatus, e?.message || "회원 탈퇴에 실패했습니다.", true);
+      deleteAccountBtn.disabled = false;
+    }
   });
 
   let isPro = user?.plan === "PRO";

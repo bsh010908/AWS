@@ -35,3 +35,30 @@ def read_me(current_user: User = Depends(get_current_user)):
             else None
         ),
     }
+
+
+@router.put("/me/email")
+def update_email(
+    payload: schemas.ChangeEmailRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    return user_service.change_email(current_user, payload, db)
+
+
+@router.put("/me/password")
+def update_password(
+    payload: schemas.ChangePasswordRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    return user_service.change_password(current_user, payload, db)
+
+
+@router.delete("/me")
+def delete_me(
+    payload: schemas.DeleteAccountRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    return user_service.delete_account(current_user, payload, db)

@@ -15,6 +15,19 @@ class UserLogin(BaseModel):
     password: str
 
 
+class ChangeEmailRequest(BaseModel):
+    new_email: EmailStr
+
+
+class ChangePasswordRequest(BaseModel):
+    current_password: str = Field(..., min_length=4, max_length=100)
+    new_password: str = Field(..., min_length=4, max_length=100)
+
+
+class DeleteAccountRequest(BaseModel):
+    current_password: str = Field(..., min_length=4, max_length=100)
+
+
 # 회원가입 응답 DTO
 class UserResponse(BaseModel):
     user_id: int
