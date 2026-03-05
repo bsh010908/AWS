@@ -370,6 +370,79 @@ export async function afterRenderSettings() {
     });
   };
 
+  const openDeleteAccountModal = () => {
+    settingsModalRoot.innerHTML = `
+      <div class="modal-overlay" id="deleteAccountModalOverlay">
+        <div class="modal">
+          <div class="modal-header">
+            <h3>회원 탈퇴</h3>
+            <button id="closeDeleteModalBtn" class="close-btn">×</button>
+          </div>
+          <div class="modal-body">
+            <p class="setting-help" style="margin:0;">
+              탈퇴하면 계정을 복구할 수 없습니다. 진행하려면 현재 비밀번호를 입력해 주세요.
+            </p>
+            <div class="form-group">
+              <label for="deleteCurrentPwInputModal">현재 비밀번호</label>
+              <input id="deleteCurrentPwInputModal" type="password" placeholder="현재 비밀번호" />
+            </div>
+            <p id="deleteModalStatus" class="setting-help"></p>
+          </div>
+          <div class="modal-footer">
+            <button id="cancelDeleteModalBtn" class="btn-sub">취소</button>
+            <button id="submitDeleteModalBtn" class="btn-danger">탈퇴하기</button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    document.addEventListener("keydown", handleEscClose);
+
+    const overlay = document.getElementById("deleteAccountModalOverlay");
+    const closeBtn = document.getElementById("closeDeleteModalBtn");
+    const cancelBtn = document.getElementById("cancelDeleteModalBtn");
+    const submitBtn = document.getElementById("submitDeleteModalBtn");
+    const currentPwInput = document.getElementById("deleteCurrentPwInputModal");
+    const modalStatus = document.getElementById("deleteModalStatus");
+
+    closeBtn.addEventListener("click", closeModal);
+    cancelBtn.addEventListener("click", closeModal);
+    overlay.addEventListener("click", (e) => {
+      if (e.target === overlay) closeModal();
+    });
+
+    submitBtn.addEventListener("click", async () => {
+      const currentPassword = currentPwInput.value;
+      if (!currentPassword) {
+        setInlineStatus(modalStatus, "현재 비밀번호를 입력해 주세요.", true);
+        return;
+      }
+
+      if (!confirm("정말 회원 탈퇴를 진행하시겠습니까?")) {
+        return;
+      }
+
+      submitBtn.disabled = true;
+      setInlineStatus(modalStatus, "회원 탈퇴 처리 중...");
+
+      try {
+        await apiRequest(AUTH_BASE, "/me", {
+          method: "DELETE",
+          body: JSON.stringify({
+            current_password: currentPassword,
+          }),
+        });
+
+        localStorage.removeItem("access_token");
+        window.location.href = "index.html";
+      } catch (e) {
+        setInlineStatus(modalStatus, e?.message || "회원 탈퇴에 실패했습니다.", true);
+        setInlineStatus(deleteAccountStatus, e?.message || "회원 탈퇴에 실패했습니다.", true);
+        submitBtn.disabled = false;
+      }
+    });
+  };
+
   changeEmailBtn.addEventListener("click", async () => {
     const newEmail = newEmailInput.value.trim();
 
@@ -401,35 +474,7 @@ export async function afterRenderSettings() {
 
   changePasswordBtn.addEventListener("click", openPasswordChangeModal);
 
-  deleteAccountBtn.addEventListener("click", async () => {
-    const currentPassword = window.prompt("회원 탈퇴를 위해 현재 비밀번호를 입력해 주세요.");
-    if (!currentPassword) {
-      setInlineStatus(deleteAccountStatus, "현재 비밀번호를 입력해 주세요.", true);
-      return;
-    }
-
-    if (!confirm("회원 탈퇴를 진행하면 계정을 복구할 수 없습니다. 계속하시겠습니까?")) {
-      return;
-    }
-
-    deleteAccountBtn.disabled = true;
-    setInlineStatus(deleteAccountStatus, "회원 탈퇴 처리 중...");
-
-    try {
-      await apiRequest(AUTH_BASE, "/me", {
-        method: "DELETE",
-        body: JSON.stringify({
-          current_password: currentPassword,
-        }),
-      });
-
-      localStorage.removeItem("access_token");
-      window.location.href = "index.html";
-    } catch (e) {
-      setInlineStatus(deleteAccountStatus, e?.message || "회원 탈퇴에 실패했습니다.", true);
-      deleteAccountBtn.disabled = false;
-    }
-  });
+  deleteAccountBtn.addEventListener("click", openDeleteAccountModal);
 
   let isPro = user?.plan === "PRO";
   let nextBillingAt = pickNextBillingAt(user, syncResult);
