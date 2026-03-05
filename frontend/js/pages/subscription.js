@@ -20,6 +20,29 @@ function formatKstDate(isoString) {
   });
 }
 
+function parseDateSafe(value) {
+  if (!value) return null;
+  const normalized = typeof value === "string" && value.includes("T")
+    ? value
+    : String(value).replace(" ", "T");
+  const date = new Date(normalized);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function isPastDate(value) {
+  const date = parseDateSafe(value);
+  if (!date) return false;
+  return date.getTime() < Date.now();
+}
+
+function plusOneMonth(value) {
+  const date = parseDateSafe(value);
+  if (!date) return null;
+  const next = new Date(date);
+  next.setMonth(next.getMonth() + 1);
+  return next;
+}
+
 function pickNextBillingAt(user, syncResult) {
   return (
     syncResult?.next_billing_at ??
@@ -108,13 +131,15 @@ export async function afterRenderSubscription() {
   ]);
 
   let isPro = user.plan === "PRO";
+  let nextBillingAt = pickNextBillingAt(user, syncResult);
 
-  // PRO인데 결제일이 비어 있으면 동기화 재시도
-  if (isPro && !pickNextBillingAt(user, syncResult)) {
+  // PRO인데 결제일이 비어 있거나 과거면 동기화 재시도
+  if (isPro && (!nextBillingAt || isPastDate(nextBillingAt))) {
     try {
       syncResult = await apiRequest(AUTH_BASE, "/billing/sync-subscription", { method: "POST" });
       user = await apiRequest(AUTH_BASE, "/me");
       isPro = user.plan === "PRO";
+      nextBillingAt = pickNextBillingAt(user, syncResult);
     } catch {
       // 동기화 실패 시 기존 데이터로 렌더
     }
@@ -189,11 +214,19 @@ export async function afterRenderSubscription() {
     usagePercent.textContent = `${Math.floor(percent)}% 사용 중`;
   }
 
-  const nextBillingAt = pickNextBillingAt(user, syncResult);
-
   if (nextBillingAt) {
-    const formatted = formatKstDate(nextBillingAt);
-    nextBilling.textContent = formatted === "-" ? String(nextBillingAt) : formatted;
+    let displayValue = nextBillingAt;
+
+    // 결제일이 지났는데 아직 갱신값이 안 왔으면, 화면에는 다음 달 예상일을 보여준다.
+    if (isPro && isPastDate(nextBillingAt)) {
+      const expectedNext = plusOneMonth(nextBillingAt);
+      if (expectedNext) {
+        displayValue = expectedNext.toISOString();
+      }
+    }
+
+    const formatted = formatKstDate(displayValue);
+    nextBilling.textContent = formatted === "-" ? String(displayValue) : formatted;
   } else if (isPro) {
     nextBilling.textContent = "결제일 정보 동기화 중";
   } else {
