@@ -1,7 +1,7 @@
 import { renderDashboard, afterRenderDashboard } from "./pages/dashboard.js";
 import { renderReceipts, afterRenderReceipts } from "./pages/receipts.js";
 import { renderUpload, afterRenderUpload } from "./pages/upload.js";
-import { renderSettings } from "./pages/settings.js";
+import { renderSettings, afterRenderSettings } from "./pages/settings.js";
 import {
   renderSubscription,
   afterRenderSubscription,
@@ -25,6 +25,7 @@ const routes = {
   },
   "/settings": {
     render: renderSettings,
+    after: afterRenderSettings,
   },
 };
 

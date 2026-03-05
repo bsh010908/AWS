@@ -32,6 +32,14 @@
   border-radius: 8px;
 }
 
+.settings-card select {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #fff;
+}
+
 .btn-main {
   background: #6366f1;
   color: white;
@@ -53,4 +61,45 @@
   border: none;
   padding: 8px 14px;
   border-radius: 8px;
+}
+
+.setting-help {
+  color: #6b7280;
+  font-size: 13px;
+  margin-top: -6px;
+  margin-bottom: 14px;
+}
+
+.budget-controls {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.btn-row {
+  display: flex;
+  gap: 10px;
+}
+
+.setting-status {
+  min-height: 20px;
+  font-size: 13px;
+  margin-top: 10px;
+  margin-bottom: 0;
+  color: #6b7280;
+}
+
+.setting-status.success {
+  color: #16a34a;
+}
+
+.setting-status.error {
+  color: #dc2626;
+}
+
+@media (max-width: 860px) {
+  .settings-grid {
+    grid-template-columns: 1fr;
+  }
 }
