@@ -100,9 +100,6 @@ def _find_active_subscription_for_user(user: User):
 
 
 def _safe_retrieve_subscription(sub_id: str | None):
-    """
-    sub_id가 None/빈 값이면 Stripe 호출하지 않도록 방어.
-    """
     if not sub_id or not isinstance(sub_id, str):
         return None
     try:
@@ -111,30 +108,107 @@ def _safe_retrieve_subscription(sub_id: str | None):
         return None
 
 
-def _safe_retrieve_invoice(invoice_id: str | None):
-    if not invoice_id or not isinstance(invoice_id, str):
-        return None
-    try:
-        return stripe.Invoice.retrieve(invoice_id)
-    except Exception:
-        return None
-
-
 def _safe_retrieve_checkout_session(session_id: str | None):
-    """
-    checkout.session.completed에서 subscription이 None인 경우가 있어,
-    세션을 다시 조회해 subscription/customer를 최대한 확보하기 위한 용도.
-    """
     if not session_id or not isinstance(session_id, str):
         return None
     try:
-        # expand로 subscription/customer를 더 잘 가져올 수 있음
         return stripe.checkout.Session.retrieve(
             session_id,
             expand=["subscription", "customer"],
         )
     except Exception:
         return None
+
+
+def _extract_id(value):
+    if isinstance(value, str):
+        return value
+    if isinstance(value, dict):
+        return value.get("id")
+    return None
+
+
+def _find_user_by_object_metadata(db: Session, obj: dict):
+    metadata = obj.get("metadata") or {}
+    user_id = metadata.get("user_id") or obj.get("client_reference_id")
+    if not user_id:
+        return None
+
+    try:
+        return db.query(User).filter(User.user_id == int(user_id)).first()
+    except Exception:
+        return None
+
+
+def _extract_period_end_from_invoice(invoice_obj: dict) -> int | None:
+    """
+    invoice object에서 다음 결제 기간 end를 최대한 안전하게 뽑는다.
+    """
+    try:
+        lines = (invoice_obj.get("lines") or {}).get("data") or []
+        if not lines:
+            return None
+        period = (lines[0].get("period") or {})
+        return period.get("end")
+    except Exception:
+        return None
+
+
+def _find_user_with_fallbacks(
+    db: Session,
+    *,
+    sub_id: str | None,
+    customer_id: str | None,
+    event_obj: dict,
+):
+    user = _find_user_by_subscription_or_customer(db, sub_id, customer_id)
+    if not user:
+        user = _find_user_by_customer_email(db, customer_id)
+    if not user:
+        user = _find_user_by_object_metadata(db, event_obj)
+
+    if not user and sub_id:
+        try:
+            sub = stripe.Subscription.retrieve(sub_id)
+            metadata = sub.get("metadata") or {}
+            metadata_user_id = metadata.get("user_id")
+            if metadata_user_id:
+                user = db.query(User).filter(User.user_id == int(metadata_user_id)).first()
+        except Exception:
+            pass
+
+    return user
+
+
+def _upsert_subscription_state(
+    db: Session,
+    *,
+    user: User,
+    customer_id: str | None,
+    sub_id: str | None,
+    fallback_period_end: int | None = None,
+):
+    """
+    next_billing_at를 안정적으로 저장하기 위한 공통 로직.
+
+    - sub_id가 있으면 Subscription 조회해서 current_period_end 저장 (가장 정확)
+    - sub_id가 없거나 조회 실패면 fallback_period_end(이벤트에서 얻은 값)로 저장
+    """
+    user.plan = "PRO"
+    user.subscription_status = "ACTIVE"
+
+    if customer_id:
+        user.stripe_customer_id = customer_id
+
+    if sub_id:
+        user.stripe_subscription_id = sub_id
+
+    if fallback_period_end:
+        user.next_billing_at = _to_datetime_from_unix(fallback_period_end)
+
+    sub = _safe_retrieve_subscription(sub_id)
+    if sub and sub.get("current_period_end"):
+        user.next_billing_at = _to_datetime_from_unix(sub.get("current_period_end"))
 
 
 # ===============================
@@ -156,21 +230,54 @@ def create_checkout_session(current_user=Depends(get_current_user)):
                 "quantity": 1,
             }
         ],
-        success_url="http://localhost:5500/frontend/app.html?billing=success#/subscription",
+        success_url="http://localhost:5500/frontend/app.html?billing=success&session_id={CHECKOUT_SESSION_ID}#/subscription",
         cancel_url="http://localhost:5500/frontend/app.html?billing=cancel#/subscription",
         customer_email=current_user.email,
+        client_reference_id=str(current_user.user_id),
+        subscription_data={"metadata": {"user_id": str(current_user.user_id)}},
         metadata={"user_id": str(current_user.user_id)},
     )
     return {"checkout_url": session.url}
 
 
 @router.post("/sync-subscription")
-def sync_subscription(current_user=Depends(get_current_user)):
+def sync_subscription(request: Request, current_user=Depends(get_current_user)):
     db: Session = SessionLocal()
     try:
         user = db.query(User).filter(User.user_id == current_user.user_id).first()
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
+
+        session_id = request.query_params.get("session_id")
+        if session_id:
+            sess = _safe_retrieve_checkout_session(session_id)
+            if sess:
+                customer_id = _extract_id(sess.get("customer"))
+                sub_id = _extract_id(sess.get("subscription"))
+                fallback_end = None
+
+                if not sub_id and customer_id:
+                    active_sub = _find_active_subscription_for_customer(customer_id)
+                    if active_sub:
+                        sub_id = active_sub.get("id")
+                        fallback_end = active_sub.get("current_period_end")
+
+                if sub_id or customer_id:
+                    _upsert_subscription_state(
+                        db,
+                        user=user,
+                        customer_id=customer_id,
+                        sub_id=sub_id,
+                        fallback_period_end=fallback_end,
+                    )
+                    db.commit()
+                    return {
+                        "plan": user.plan,
+                        "subscription_status": user.subscription_status,
+                        "next_billing_at": (
+                            user.next_billing_at.isoformat() if user.next_billing_at else None
+                        ),
+                    }
 
         active_sub = _find_active_subscription_for_user(user)
 
@@ -227,39 +334,6 @@ def cancel_subscription(current_user=Depends(get_current_user)):
         db.close()
 
 
-def _upsert_subscription_state(
-    db: Session,
-    *,
-    user: User,
-    customer_id: str | None,
-    sub_id: str | None,
-    fallback_period_end: int | None = None,
-):
-    """
-    next_billing_at를 안정적으로 저장하기 위한 공통 로직.
-
-    - sub_id가 있으면 Subscription 조회해서 current_period_end 저장 (가장 정확)
-    - sub_id가 없거나 조회 실패면 fallback_period_end(이벤트에서 얻은 값)로 저장
-    """
-    user.plan = "PRO"
-    user.subscription_status = "ACTIVE"
-
-    if customer_id:
-        user.stripe_customer_id = customer_id
-
-    if sub_id:
-        user.stripe_subscription_id = sub_id
-
-    # 1) 이벤트에서 기간 종료(end)가 있으면 우선 반영(조회 실패 대비)
-    if fallback_period_end:
-        user.next_billing_at = _to_datetime_from_unix(fallback_period_end)
-
-    # 2) 가능하면 Subscription 조회로 통일
-    sub = _safe_retrieve_subscription(sub_id)
-    if sub and sub.get("current_period_end"):
-        user.next_billing_at = _to_datetime_from_unix(sub.get("current_period_end"))
-
-
 # ===============================
 # Webhook
 # ===============================
@@ -282,76 +356,45 @@ async def stripe_webhook(request: Request):
     try:
         # ===============================
         # 1) 결제 완료 (Checkout)
-        #   - 여기서는 subscription이 None일 수 있음 (레이스)
-        #   - 그래서 세션을 다시 조회해서 sub/customer를 최대한 복구한다.
         # ===============================
         if event_type == "checkout.session.completed":
-            user_id = (obj.get("metadata") or {}).get("user_id")
-            if not user_id:
-                return {"status": "ignored_no_user_id"}
-
-            user = db.query(User).filter(User.user_id == int(user_id)).first()
-            if not user:
-                return {"status": "ignored_user_not_found"}
-
-            # 1) 이벤트에서 우선 추출
+            user_id = (obj.get("metadata") or {}).get("user_id") or obj.get("client_reference_id")
             customer_id = obj.get("customer")
             sub_id = obj.get("subscription")  # None 가능
             session_id = obj.get("id")
+            fallback_end = None
 
-            # 2) subscription이 None이면 세션을 재조회해서 복구
+            user = None
+            if user_id:
+                try:
+                    user = db.query(User).filter(User.user_id == int(user_id)).first()
+                except Exception:
+                    user = None
+
             if not sub_id and session_id:
                 sess = _safe_retrieve_checkout_session(session_id)
                 if sess:
-                    # expand된 subscription이 객체로 올 수 있음
                     sub_val = sess.get("subscription")
-                    if isinstance(sub_val, dict):
-                        sub_id = sub_val.get("id")
-                    elif isinstance(sub_val, str):
-                        sub_id = sub_val
+                    sub_id = _extract_id(sub_val) or sub_id
 
                     cust_val = sess.get("customer")
-                    if isinstance(cust_val, dict):
-                        customer_id = customer_id or cust_val.get("id")
-                    elif isinstance(cust_val, str):
-                        customer_id = customer_id or cust_val
+                    customer_id = customer_id or _extract_id(cust_val)
 
-            # checkout은 next_billing 확정 지점이 아니지만,
-            # sub_id를 확보했으면 Subscription 조회로 next_billing도 채워둘 수 있다.
-            _upsert_subscription_state(
-                db,
-                user=user,
-                customer_id=customer_id,
-                sub_id=sub_id,
-                fallback_period_end=None,
-            )
-            db.commit()
+            if not sub_id and customer_id:
+                active_sub = _find_active_subscription_for_customer(customer_id)
+                if active_sub:
+                    sub_id = active_sub.get("id")
+                    fallback_end = active_sub.get("current_period_end")
 
-        # ===============================
-        # 2) 결제 성공 (가장 확실한 지점)
-        #   - Stripe 표준 이벤트명: invoice.payment_succeeded
-        # ===============================
-        elif event_type == "invoice.payment_succeeded":
-            sub_id = obj.get("subscription")
-            customer_id = obj.get("customer")
-
-            if not sub_id and not customer_id:
-                return {"status": "ignored_no_ids"}
-
-            user = _find_user_by_subscription_or_customer(db, sub_id, customer_id)
             if not user:
-                user = _find_user_by_customer_email(db, customer_id)
-
+                user = _find_user_with_fallbacks(
+                    db,
+                    sub_id=sub_id,
+                    customer_id=customer_id,
+                    event_obj=obj,
+                )
             if not user:
                 return {"status": "ignored_user_not_found"}
-
-            fallback_end = None
-            try:
-                lines = (obj.get("lines") or {}).get("data") or []
-                if lines:
-                    fallback_end = (lines[0].get("period") or {}).get("end")
-            except Exception:
-                fallback_end = None
 
             _upsert_subscription_state(
                 db,
@@ -361,21 +404,88 @@ async def stripe_webhook(request: Request):
                 fallback_period_end=fallback_end,
             )
             db.commit()
+            return {"status": "ok_checkout_completed"}
+
+        # ===============================
+        # 2) 결제 성공 (Stripe 표준)
+        # ===============================
+        if event_type == "invoice.payment_succeeded":
+            sub_id = _extract_id(obj.get("subscription"))
+            customer_id = _extract_id(obj.get("customer"))
+
+            if not sub_id and not customer_id:
+                return {"status": "ignored_no_ids"}
+
+            user = _find_user_with_fallbacks(
+                db,
+                sub_id=sub_id,
+                customer_id=customer_id,
+                event_obj=obj,
+            )
+            if not user:
+                return {"status": "ignored_user_not_found"}
+
+            fallback_end = _extract_period_end_from_invoice(obj)
+
+            _upsert_subscription_state(
+                db,
+                user=user,
+                customer_id=customer_id,
+                sub_id=sub_id,
+                fallback_period_end=fallback_end,
+            )
+            db.commit()
+            return {"status": "ok_invoice_payment_succeeded"}
+
+        # ===============================
+        # 2-호환: Stripe CLI가 보내는 invoice_payment.paid
+        #   - 이 이벤트는 data.object 자체가 invoice 이므로 "invoice id로 retrieve" 하면 안 됨
+        # ===============================
+        elif event_type == "invoice_payment.paid":
+
+            sub_id = _extract_id(obj.get("subscription"))
+            customer_id = _extract_id(obj.get("customer"))
+
+            user = _find_user_with_fallbacks(
+                db,
+                sub_id=sub_id,
+                customer_id=customer_id,
+                event_obj=obj,
+            )
+
+            if not user:
+                print("USER NOT FOUND")
+                return {"status": "ignored_user_not_found"}
+
+            fallback_end = _extract_period_end_from_invoice(obj)
+
+            _upsert_subscription_state(
+                db,
+                user=user,
+                customer_id=customer_id,
+                sub_id=sub_id,
+                fallback_period_end=fallback_end,
+            )
+
+            db.commit()
 
         # ===============================
         # 3) 구독 생성/변경
         # ===============================
-        elif event_type in ("customer.subscription.created", "customer.subscription.updated"):
+        if event_type in ("customer.subscription.created", "customer.subscription.updated"):
             sub_id = obj.get("id")
-            customer_id = obj.get("customer")
+            customer_id = _extract_id(obj.get("customer"))
             fallback_end = obj.get("current_period_end")
 
             if not sub_id and not customer_id:
                 return {"status": "ignored_no_ids"}
 
-            user = _find_user_by_subscription_or_customer(db, sub_id, customer_id)
-            if not user:
-                user = _find_user_by_customer_email(db, customer_id)
+            user = _find_user_with_fallbacks(
+                db,
+                sub_id=sub_id,
+                customer_id=customer_id,
+                event_obj=obj,
+            )
 
             if user:
                 _upsert_subscription_state(
@@ -386,13 +496,16 @@ async def stripe_webhook(request: Request):
                     fallback_period_end=fallback_end,
                 )
                 db.commit()
+                return {"status": "ok_subscription_upsert"}
+
+            return {"status": "ignored_user_not_found"}
 
         # ===============================
         # 4) 구독 취소
         # ===============================
-        elif event_type == "customer.subscription.deleted":
+        if event_type == "customer.subscription.deleted":
             sub_id = obj.get("id")
-            customer_id = obj.get("customer")
+            customer_id = _extract_id(obj.get("customer"))
 
             user = _find_user_by_subscription_or_customer(db, sub_id, customer_id)
             if not user:
@@ -404,11 +517,11 @@ async def stripe_webhook(request: Request):
                 user.stripe_subscription_id = None
                 user.next_billing_at = None
                 db.commit()
+                return {"status": "ok_subscription_deleted"}
 
-        else:
-            return {"status": "ignored_event", "event_type": event_type}
+            return {"status": "ignored_user_not_found"}
+
+        return {"status": "ignored_event", "event_type": event_type}
 
     finally:
         db.close()
-
-    return {"status": "success"}

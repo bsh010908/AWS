@@ -4,13 +4,29 @@ const FREE_OCR_LIMIT = 50;
 
 function formatKstDate(isoString) {
   if (!isoString) return "-";
-  const date = new Date(isoString);
+
+  // 일부 환경에서 timezone 없는 문자열 파싱이 실패할 수 있어 보정
+  const normalized = typeof isoString === "string" && isoString.includes("T")
+    ? isoString
+    : String(isoString).replace(" ", "T");
+
+  const date = new Date(normalized);
   if (Number.isNaN(date.getTime())) return "-";
+
   return date.toLocaleDateString("ko-KR", {
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
   });
+}
+
+function pickNextBillingAt(user, syncResult) {
+  return (
+    syncResult?.next_billing_at ??
+    user?.next_billing_at ??
+    user?.nextBillingAt ??
+    null
+  );
 }
 
 export async function renderSubscription() {
@@ -69,11 +85,18 @@ export async function afterRenderSubscription() {
   const nextBilling = document.getElementById("nextBilling");
   const billingResult = document.getElementById("billingResult");
 
-  const billingState = new URLSearchParams(window.location.search).get("billing");
+  const query = new URLSearchParams(window.location.search);
+  const billingState = query.get("billing");
+  const sessionId = query.get("session_id");
+
+  let syncResult = null;
 
   if (billingState === "success") {
     try {
-      await apiRequest(AUTH_BASE, "/billing/sync-subscription", { method: "POST" });
+      const syncEndpoint = sessionId
+        ? `/billing/sync-subscription?session_id=${encodeURIComponent(sessionId)}`
+        : "/billing/sync-subscription";
+      syncResult = await apiRequest(AUTH_BASE, syncEndpoint, { method: "POST" });
     } catch {
       // 웹훅 지연 시에도 최대한 동기화를 시도하고, 실패해도 화면 렌더는 진행
     }
@@ -86,9 +109,10 @@ export async function afterRenderSubscription() {
 
   let isPro = user.plan === "PRO";
 
-  if (isPro && !user.next_billing_at) {
+  // PRO인데 결제일이 비어 있으면 동기화 재시도
+  if (isPro && !pickNextBillingAt(user, syncResult)) {
     try {
-      await apiRequest(AUTH_BASE, "/billing/sync-subscription", { method: "POST" });
+      syncResult = await apiRequest(AUTH_BASE, "/billing/sync-subscription", { method: "POST" });
       user = await apiRequest(AUTH_BASE, "/me");
       isPro = user.plan === "PRO";
     } catch {
@@ -165,10 +189,13 @@ export async function afterRenderSubscription() {
     usagePercent.textContent = `${Math.floor(percent)}% 사용 중`;
   }
 
-  if (isPro) {
-    nextBilling.textContent = user.next_billing_at
-      ? formatKstDate(user.next_billing_at)
-      : "결제일 정보 동기화 중";
+  const nextBillingAt = pickNextBillingAt(user, syncResult);
+
+  if (nextBillingAt) {
+    const formatted = formatKstDate(nextBillingAt);
+    nextBilling.textContent = formatted === "-" ? String(nextBillingAt) : formatted;
+  } else if (isPro) {
+    nextBilling.textContent = "결제일 정보 동기화 중";
   } else {
     nextBilling.textContent = "FREE 플랜은 결제 없음";
   }
