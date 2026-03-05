@@ -109,6 +109,52 @@ async function saveBudget(year, month, amount, statusEl) {
   }
 }
 
+async function fetchCategories() {
+  return apiRequest(LEDGER_BASE, "/categories");
+}
+
+function renderCategoryItems(categories, currentUserId, editingCategoryId) {
+  if (!categories || categories.length === 0) {
+    return `<div class="category-empty">카테고리가 없습니다.</div>`;
+  }
+
+  return categories
+    .map((c) => {
+      const isMine = Number(c.user_id) === Number(currentUserId);
+      const isDefault = c.user_id == null;
+      const isEditing = isMine && Number(editingCategoryId) === Number(c.category_id);
+
+      return `
+        <div class="category-item" data-id="${c.category_id}" data-name="${c.name}">
+          <div class="category-meta">
+            ${
+              isEditing
+                ? `<input class="category-inline-input" value="${c.name}" />`
+                : `<span class="category-name">${c.name}</span>`
+            }
+            <span class="category-badge ${isDefault ? "default" : "custom"}">
+              ${isDefault ? "기본" : "내 카테고리"}
+            </span>
+          </div>
+          <div class="category-actions">
+            ${
+              isEditing
+                ? `
+                  <button class="btn-main category-save-btn">저장</button>
+                  <button class="btn-sub category-cancel-btn">취소</button>
+                `
+                : `
+                  <button class="btn-sub category-edit-btn" ${isMine ? "" : "disabled"}>수정</button>
+                  <button class="btn-danger category-delete-btn" ${isMine ? "" : "disabled"}>삭제</button>
+                `
+            }
+          </div>
+        </div>
+      `;
+    })
+    .join("");
+}
+
 export async function renderSettings() {
   return `
   <div class="settings-page">
@@ -197,6 +243,16 @@ export async function renderSettings() {
       </div>
 
       <div class="settings-card">
+        <h3>카테고리 관리</h3>
+        <div class="category-create-row">
+          <input id="newCategoryNameInput" type="text" placeholder="새 카테고리 이름" />
+          <button id="addCategoryBtn" class="btn-main">추가</button>
+        </div>
+        <p id="categoryStatus" class="setting-help"></p>
+        <div id="categoryList" class="category-list"></div>
+      </div>
+
+      <div class="settings-card">
         <h3>데이터</h3>
         <button class="btn-sub" disabled>CSV 다운로드 (준비중)</button>
       </div>
@@ -231,6 +287,10 @@ export async function afterRenderSettings() {
   const loadBtn = document.getElementById("budgetLoadBtn");
   const saveBtn = document.getElementById("budgetSaveBtn");
   const budgetStatusEl = document.getElementById("budgetStatus");
+  const newCategoryNameInput = document.getElementById("newCategoryNameInput");
+  const addCategoryBtn = document.getElementById("addCategoryBtn");
+  const categoryStatusEl = document.getElementById("categoryStatus");
+  const categoryListEl = document.getElementById("categoryList");
 
   const query = new URLSearchParams(window.location.search);
   const billingState = query.get("billing");
@@ -271,6 +331,88 @@ export async function afterRenderSettings() {
     el.textContent = message;
     el.classList.toggle("error", isError);
     el.classList.toggle("success", !isError && message.length > 0);
+  };
+
+  let cachedCategories = [];
+  let editingCategoryId = null;
+
+  const renderAndBindCategories = async ({ reload = true } = {}) => {
+    try {
+      if (reload) {
+        cachedCategories = await fetchCategories();
+      }
+      categoryListEl.innerHTML = renderCategoryItems(
+        cachedCategories,
+        user?.user_id,
+        editingCategoryId,
+      );
+      setInlineStatus(categoryStatusEl, "");
+
+      categoryListEl.querySelectorAll(".category-edit-btn").forEach((btn) => {
+        btn.addEventListener("click", async (e) => {
+          const item = e.target.closest(".category-item");
+          editingCategoryId = Number(item.dataset.id);
+          await renderAndBindCategories({ reload: false });
+        });
+      });
+
+      categoryListEl.querySelectorAll(".category-cancel-btn").forEach((btn) => {
+        btn.addEventListener("click", async () => {
+          editingCategoryId = null;
+          await renderAndBindCategories({ reload: false });
+        });
+      });
+
+      categoryListEl.querySelectorAll(".category-save-btn").forEach((btn) => {
+        btn.addEventListener("click", async (e) => {
+          const item = e.target.closest(".category-item");
+          const categoryId = Number(item.dataset.id);
+          const input = item.querySelector(".category-inline-input");
+          const nextName = (input?.value || "").trim();
+          if (!nextName) {
+            setInlineStatus(categoryStatusEl, "카테고리 이름을 입력해 주세요.", true);
+            return;
+          }
+
+          e.target.disabled = true;
+          try {
+            await apiRequest(LEDGER_BASE, `/categories/${categoryId}`, {
+              method: "PUT",
+              body: JSON.stringify({ name: nextName }),
+            });
+            editingCategoryId = null;
+            setInlineStatus(categoryStatusEl, "카테고리가 수정되었습니다.");
+            await renderAndBindCategories({ reload: true });
+          } catch (err) {
+            setInlineStatus(categoryStatusEl, err?.message || "카테고리 수정에 실패했습니다.", true);
+            e.target.disabled = false;
+          }
+        });
+      });
+
+      categoryListEl.querySelectorAll(".category-delete-btn").forEach((btn) => {
+        btn.addEventListener("click", async (e) => {
+          const item = e.target.closest(".category-item");
+          const categoryId = Number(item.dataset.id);
+          const name = item.dataset.name;
+          if (!confirm(`'${name}' 카테고리를 삭제하시겠습니까?`)) return;
+
+          try {
+            await apiRequest(LEDGER_BASE, `/categories/${categoryId}`, {
+              method: "DELETE",
+            });
+            editingCategoryId = null;
+            setInlineStatus(categoryStatusEl, "카테고리가 삭제되었습니다.");
+            await renderAndBindCategories({ reload: true });
+          } catch (err) {
+            setInlineStatus(categoryStatusEl, err?.message || "카테고리 삭제에 실패했습니다.", true);
+          }
+        });
+      });
+    } catch (err) {
+      categoryListEl.innerHTML = `<div class="category-empty">카테고리 목록을 불러오지 못했습니다.</div>`;
+      setInlineStatus(categoryStatusEl, err?.message || "카테고리 조회 실패", true);
+    }
   };
 
   const closeModal = () => {
@@ -613,4 +755,31 @@ export async function afterRenderSettings() {
 
     await saveBudget(year, month, Math.floor(amount), budgetStatusEl);
   });
+
+  addCategoryBtn.addEventListener("click", async () => {
+    const name = newCategoryNameInput.value.trim();
+    if (!name) {
+      setInlineStatus(categoryStatusEl, "카테고리 이름을 입력해 주세요.", true);
+      return;
+    }
+
+    addCategoryBtn.disabled = true;
+    setInlineStatus(categoryStatusEl, "카테고리 추가 중...");
+
+    try {
+      await apiRequest(LEDGER_BASE, "/categories", {
+        method: "POST",
+        body: JSON.stringify({ name }),
+      });
+      newCategoryNameInput.value = "";
+      setInlineStatus(categoryStatusEl, "카테고리가 추가되었습니다.");
+      await renderAndBindCategories({ reload: true });
+    } catch (err) {
+      setInlineStatus(categoryStatusEl, err?.message || "카테고리 추가에 실패했습니다.", true);
+    } finally {
+      addCategoryBtn.disabled = false;
+    }
+  });
+
+  await renderAndBindCategories({ reload: true });
 }

@@ -135,6 +135,107 @@
   margin: 8px 0 0;
 }
 
+.category-create-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.category-create-row input {
+  margin-bottom: 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+.category-create-row .btn-main {
+  white-space: nowrap;
+}
+
+.category-list {
+  display: grid;
+  gap: 10px;
+  max-height: 280px;
+  overflow: auto;
+  padding-right: 4px;
+}
+
+.category-item {
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 10px 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.category-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.category-name {
+  font-weight: 600;
+  color: #111827;
+  word-break: break-word;
+}
+
+.category-badge {
+  font-size: 11px;
+  border-radius: 999px;
+  padding: 2px 8px;
+  border: 1px solid #e5e7eb;
+  white-space: nowrap;
+}
+
+.category-badge.default {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.category-badge.custom {
+  background: #ecfeff;
+  color: #0f766e;
+  border-color: #99f6e4;
+}
+
+.category-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.category-actions .btn-sub,
+.category-actions .btn-danger {
+  padding: 6px 10px;
+  font-size: 12px;
+}
+
+.category-actions .btn-main {
+  padding: 6px 10px;
+  font-size: 12px;
+}
+
+.category-inline-input {
+  width: 180px;
+  max-width: 100%;
+  margin: 0;
+  padding: 6px 8px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+}
+
+.category-actions button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.category-empty {
+  font-size: 13px;
+  color: #6b7280;
+  padding: 8px 0;
+}
+
 .setting-status {
   min-height: 20px;
   font-size: 13px;
