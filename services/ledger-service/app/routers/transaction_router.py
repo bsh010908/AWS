@@ -1,9 +1,11 @@
-from fastapi import APIRouter, Depends, Query, HTTPException
+from fastapi import APIRouter, Depends, Query, HTTPException, Response
 from sqlalchemy.orm import Session
 from sqlalchemy import desc
 from datetime import datetime
 from fastapi import Body
 from sqlalchemy.orm import joinedload
+import csv
+from io import StringIO
 
 from app.db.session import get_db
 from app.core.security import get_current_user
@@ -153,6 +155,70 @@ def get_recent_transactions(
         }
         for tx in txs
     ]
+
+
+# ===============================
+# 거래 CSV 내보내기
+# ===============================
+@router.get("/export/csv")
+def export_transactions_csv(
+    year: int | None = Query(None),
+    month: int | None = Query(None, ge=1, le=12),
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user),
+):
+    user_id = current_user["user_id"]
+
+    query = (
+        db.query(Transaction)
+        .options(joinedload(Transaction.category))
+        .filter(Transaction.user_id == user_id)
+    )
+
+    if year is not None and month is not None:
+        start_date, end_date = _build_month_range(year, month)
+        query = query.filter(Transaction.occurred_at >= start_date)
+        query = query.filter(Transaction.occurred_at < end_date)
+
+    txs = query.order_by(desc(Transaction.occurred_at)).all()
+
+    output = StringIO()
+    writer = csv.writer(output)
+    writer.writerow(
+        [
+            "id",
+            "occurred_at",
+            "amount",
+            "category",
+            "merchant_name",
+            "memo",
+            "source_type",
+        ]
+    )
+
+    for tx in txs:
+        writer.writerow(
+            [
+                tx.tx_id,
+                tx.occurred_at.isoformat() if tx.occurred_at else "",
+                tx.amount,
+                tx.category.name if tx.category else "",
+                tx.merchant_name or "",
+                tx.memo or "",
+                tx.source_type or "",
+            ]
+        )
+
+    if year is not None and month is not None:
+        filename = f"transactions_{year}_{str(month).zfill(2)}.csv"
+    else:
+        filename = "transactions_all.csv"
+
+    return Response(
+        content=output.getvalue(),
+        media_type="text/csv; charset=utf-8",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
 
 # ===============================
 # 거래 상세 조회

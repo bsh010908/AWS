@@ -48,6 +48,25 @@ function pickNextBillingAt(user, syncResult) {
   );
 }
 
+function toKoreanErrorMessage(error, fallback = "요청 처리에 실패했습니다.") {
+  const raw = String(error?.message || "").trim();
+  if (!raw) return fallback;
+
+  const map = {
+    "API Error": "요청 처리 중 오류가 발생했습니다.",
+    "Failed to fetch": "서버에 연결할 수 없습니다. 잠시 후 다시 시도해 주세요.",
+    "NetworkError when attempting to fetch resource.": "네트워크 오류가 발생했습니다.",
+    "User not found": "사용자 정보를 찾을 수 없습니다.",
+    "checkout_url not found": "결제 링크를 생성하지 못했습니다.",
+    "CSV 다운로드 실패": "CSV 다운로드에 실패했습니다.",
+    "Token validation failed": "로그인이 만료되었습니다. 다시 로그인해 주세요.",
+    "Invalid token": "로그인이 만료되었습니다. 다시 로그인해 주세요.",
+  };
+
+  if (map[raw]) return map[raw];
+  return raw;
+}
+
 function initYearMonthOptions(yearSelect, monthSelect) {
   const now = new Date();
   const currentYear = now.getFullYear();
@@ -87,7 +106,7 @@ async function loadBudget(year, month, amountInput, statusEl) {
     statusEl.textContent = `${year}년 ${month}월 예산을 불러왔습니다.`;
     statusEl.classList.add("success");
   } catch (e) {
-    statusEl.textContent = e?.message || "예산 조회에 실패했습니다.";
+    statusEl.textContent = toKoreanErrorMessage(e, "예산 조회에 실패했습니다.");
     statusEl.classList.add("error");
   }
 }
@@ -104,7 +123,7 @@ async function saveBudget(year, month, amount, statusEl) {
     statusEl.textContent = `${year}년 ${month}월 예산을 저장했습니다.`;
     statusEl.classList.add("success");
   } catch (e) {
-    statusEl.textContent = e?.message || "예산 저장에 실패했습니다.";
+    statusEl.textContent = toKoreanErrorMessage(e, "예산 저장에 실패했습니다.");
     statusEl.classList.add("error");
   }
 }
@@ -166,24 +185,34 @@ export async function renderSettings() {
 
       <div class="subscription-grid">
         <div class="plan-card main-card">
-          <div class="plan-top">
-            <div>
-              <h3 id="planTitle">PRO 플랜</h3>
-              <p class="plan-status">
-                <span class="status-dot"></span>
-                <span id="subscriptionStatus">확인 중...</span>
-              </p>
+          <div class="subscription-section current-status-box">
+            <div class="subscription-section-title">현재 상태</div>
+            <div class="plan-top">
+              <div>
+                <h3 id="planTitle">현재 이용 플랜</h3>
+                <div class="current-plan-row">
+                  <span id="currentPlanBadge" class="current-plan-badge">확인 중...</span>
+                  <span id="currentPlanHint" class="current-plan-hint"></span>
+                </div>
+                <p class="plan-status">
+                  <span class="status-dot"></span>
+                  <span id="subscriptionStatus">확인 중...</span>
+                </p>
+              </div>
             </div>
-            <div class="price" id="planPrice">₩4,900 / 월</div>
           </div>
 
-          <ul class="plan-features">
-            <li>FREE: 월 OCR 50회</li>
-            <li>PRO: OCR 사용량 무제한</li>
-            <li>Stripe 자동 결제/구독 취소</li>
-          </ul>
+          <div class="subscription-section upgrade-info-box">
+            <div class="subscription-section-title">업그레이드 정보</div>
+            <div class="price" id="planPrice">₩4,900 / 월</div>
+            <ul class="plan-features">
+              <li>FREE: 월 OCR 50회</li>
+              <li>PRO: OCR 사용량 무제한</li>
+              <li>Stripe 자동 결제/구독 취소</li>
+            </ul>
 
-          <div class="plan-actions" id="planActions"></div>
+            <div class="plan-actions" id="planActions"></div>
+          </div>
         </div>
 
         <div class="plan-card side-card">
@@ -208,17 +237,18 @@ export async function renderSettings() {
         <h3>계정</h3>
         <p>이메일</p>
         <input id="userEmail" type="text" value="불러오는 중..." disabled />
+        <p class="account-meta-line">가입일: <b id="accountCreatedAt">확인 중...</b></p>
         <p>새 이메일</p>
         <input id="newEmailInput" type="email" placeholder="변경할 이메일 입력" />
-        <div class="btn-row account-actions">
-          <button id="changeEmailBtn" class="btn-main">저장</button>
-          <button id="changePasswordBtn" class="btn-main">비밀번호 변경</button>
-        </div>
         <p class="setting-help" id="emailChangeStatus"></p>
         <p class="setting-help" id="passwordChangeStatus"></p>
-        <div class="account-corner-actions">
-          <button id="deleteAccountBtn" class="btn-danger corner-delete-btn">회원 탈퇴</button>
-          <p class="setting-help delete-status" id="deleteAccountStatus"></p>
+        <p class="setting-help delete-status" id="deleteAccountStatus"></p>
+        <div class="btn-row account-actions">
+          <button id="deleteAccountBtn" class="btn-danger">회원 탈퇴</button>
+          <div class="account-actions-right">
+            <button id="changeEmailBtn" class="btn-main">저장</button>
+            <button id="changePasswordBtn" class="btn-main">비밀번호 변경</button>
+          </div>
         </div>
       </div>
 
@@ -252,9 +282,16 @@ export async function renderSettings() {
         <div id="categoryList" class="category-list"></div>
       </div>
 
-      <div class="settings-card">
+      <div class="settings-card data-card">
         <h3>데이터</h3>
-        <button class="btn-sub" disabled>CSV 다운로드 (준비중)</button>
+        <p class="data-card-desc">CSV 파일로 거래 데이터를 다운로드할 수 있습니다.</p>
+        <div class="data-info-list">
+          <div class="data-info-item">내보내기 기준: <b id="exportTargetMonth">-</b></div>
+          <div class="data-info-item">이번 달 거래 건수: <b id="exportTxCount">확인 중...</b></div>
+          <div class="data-info-item">포함 항목: 금액, 카테고리, 메모, 상호명, 거래일</div>
+        </div>
+        <button id="exportCsvBtn" class="btn-sub">CSV 다운로드</button>
+        <p id="exportStatus" class="setting-help"></p>
       </div>
     </div>
     <div id="settingsModalRoot"></div>
@@ -264,6 +301,7 @@ export async function renderSettings() {
 
 export async function afterRenderSettings() {
   const emailInput = document.getElementById("userEmail");
+  const accountCreatedAt = document.getElementById("accountCreatedAt");
   const changePasswordBtn = document.getElementById("changePasswordBtn");
   const settingsModalRoot = document.getElementById("settingsModalRoot");
   const changeEmailBtn = document.getElementById("changeEmailBtn");
@@ -280,6 +318,9 @@ export async function afterRenderSettings() {
   const usagePercent = document.getElementById("usagePercent");
   const nextBilling = document.getElementById("nextBilling");
   const billingResult = document.getElementById("billingResult");
+  const planTitle = document.getElementById("planTitle");
+  const currentPlanBadge = document.getElementById("currentPlanBadge");
+  const currentPlanHint = document.getElementById("currentPlanHint");
 
   const yearSelect = document.getElementById("budgetYear");
   const monthSelect = document.getElementById("budgetMonth");
@@ -291,6 +332,10 @@ export async function afterRenderSettings() {
   const addCategoryBtn = document.getElementById("addCategoryBtn");
   const categoryStatusEl = document.getElementById("categoryStatus");
   const categoryListEl = document.getElementById("categoryList");
+  const exportCsvBtn = document.getElementById("exportCsvBtn");
+  const exportStatusEl = document.getElementById("exportStatus");
+  const exportTargetMonth = document.getElementById("exportTargetMonth");
+  const exportTxCount = document.getElementById("exportTxCount");
 
   const query = new URLSearchParams(window.location.search);
   const billingState = query.get("billing");
@@ -323,8 +368,10 @@ export async function afterRenderSettings() {
 
   if (user) {
     emailInput.value = user.email || "-";
+    accountCreatedAt.textContent = formatKstDate(user.created_at);
   } else {
     emailInput.value = "-";
+    accountCreatedAt.textContent = "-";
   }
 
   const setInlineStatus = (el, message, isError = false) => {
@@ -384,7 +431,7 @@ export async function afterRenderSettings() {
             setInlineStatus(categoryStatusEl, "카테고리가 수정되었습니다.");
             await renderAndBindCategories({ reload: true });
           } catch (err) {
-            setInlineStatus(categoryStatusEl, err?.message || "카테고리 수정에 실패했습니다.", true);
+            setInlineStatus(categoryStatusEl, toKoreanErrorMessage(err, "카테고리 수정에 실패했습니다."), true);
             e.target.disabled = false;
           }
         });
@@ -405,13 +452,13 @@ export async function afterRenderSettings() {
             setInlineStatus(categoryStatusEl, "카테고리가 삭제되었습니다.");
             await renderAndBindCategories({ reload: true });
           } catch (err) {
-            setInlineStatus(categoryStatusEl, err?.message || "카테고리 삭제에 실패했습니다.", true);
+            setInlineStatus(categoryStatusEl, toKoreanErrorMessage(err, "카테고리 삭제에 실패했습니다."), true);
           }
         });
       });
     } catch (err) {
       categoryListEl.innerHTML = `<div class="category-empty">카테고리 목록을 불러오지 못했습니다.</div>`;
-      setInlineStatus(categoryStatusEl, err?.message || "카테고리 조회 실패", true);
+      setInlineStatus(categoryStatusEl, toKoreanErrorMessage(err, "카테고리 조회에 실패했습니다."), true);
     }
   };
 
@@ -506,7 +553,7 @@ export async function afterRenderSettings() {
           window.location.href = "login.html";
         }, 700);
       } catch (e) {
-        setInlineStatus(modalStatus, e?.message || "비밀번호 변경에 실패했습니다.", true);
+        setInlineStatus(modalStatus, toKoreanErrorMessage(e, "비밀번호 변경에 실패했습니다."), true);
         submitBtn.disabled = false;
       }
     });
@@ -578,8 +625,9 @@ export async function afterRenderSettings() {
         localStorage.removeItem("access_token");
         window.location.href = "index.html";
       } catch (e) {
-        setInlineStatus(modalStatus, e?.message || "회원 탈퇴에 실패했습니다.", true);
-        setInlineStatus(deleteAccountStatus, e?.message || "회원 탈퇴에 실패했습니다.", true);
+        const msg = toKoreanErrorMessage(e, "회원 탈퇴에 실패했습니다.");
+        setInlineStatus(modalStatus, msg, true);
+        setInlineStatus(deleteAccountStatus, msg, true);
         submitBtn.disabled = false;
       }
     });
@@ -608,7 +656,7 @@ export async function afterRenderSettings() {
       newEmailInput.value = "";
       setInlineStatus(emailChangeStatus, "저장되었습니다.");
     } catch (e) {
-      setInlineStatus(emailChangeStatus, e?.message || "저장에 실패했습니다.", true);
+      setInlineStatus(emailChangeStatus, toKoreanErrorMessage(e, "저장에 실패했습니다."), true);
     } finally {
       changeEmailBtn.disabled = false;
     }
@@ -633,6 +681,9 @@ export async function afterRenderSettings() {
   }
 
   if (isPro) {
+    planTitle.textContent = "현재 이용 플랜";
+    currentPlanBadge.textContent = "PRO";
+    currentPlanBadge.classList.add("pro");
     statusEl.textContent = "활성 상태 (PRO)";
     actionsEl.innerHTML = `
       <button class="secondary-btn" disabled>결제 정보 관리</button>
@@ -656,6 +707,10 @@ export async function afterRenderSettings() {
       }
     };
   } else {
+    planTitle.textContent = "현재 이용 플랜";
+    currentPlanBadge.textContent = "FREE";
+    currentPlanBadge.classList.remove("pro");
+    currentPlanHint.textContent = "기본 기능 사용 중";
     statusEl.textContent = "FREE 플랜 이용 중";
     actionsEl.innerHTML = `<button id="upgradeBtn" class="primary-btn">PRO로 업그레이드</button>`;
 
@@ -737,10 +792,32 @@ export async function afterRenderSettings() {
     await loadBudget(year, month, amountInput, budgetStatusEl);
   };
 
-  await refreshCurrentBudget();
+  const refreshExportCardInfo = async () => {
+    const { year, month } = getSelectedYearMonth();
+    exportTargetMonth.textContent = `${year}년 ${month}월`;
 
-  yearSelect.addEventListener("change", refreshCurrentBudget);
-  monthSelect.addEventListener("change", refreshCurrentBudget);
+    try {
+      const txPage = await apiRequest(
+        LEDGER_BASE,
+        `/transactions?year=${encodeURIComponent(year)}&month=${encodeURIComponent(month)}&page=0&size=1`,
+      );
+      exportTxCount.textContent = `${Number(txPage?.total_elements ?? 0)}건`;
+    } catch {
+      exportTxCount.textContent = "조회 실패";
+    }
+  };
+
+  await refreshCurrentBudget();
+  await refreshExportCardInfo();
+
+  yearSelect.addEventListener("change", async () => {
+    await refreshCurrentBudget();
+    await refreshExportCardInfo();
+  });
+  monthSelect.addEventListener("change", async () => {
+    await refreshCurrentBudget();
+    await refreshExportCardInfo();
+  });
   loadBtn.addEventListener("click", refreshCurrentBudget);
 
   saveBtn.addEventListener("click", async () => {
@@ -754,6 +831,62 @@ export async function afterRenderSettings() {
     }
 
     await saveBudget(year, month, Math.floor(amount), budgetStatusEl);
+  });
+
+  exportCsvBtn.addEventListener("click", async () => {
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      window.location.href = "login.html";
+      return;
+    }
+
+    const { year, month } = getSelectedYearMonth();
+    const endpoint = `${LEDGER_BASE}/transactions/export/csv?year=${encodeURIComponent(year)}&month=${encodeURIComponent(month)}`;
+
+    exportCsvBtn.disabled = true;
+    setInlineStatus(exportStatusEl, "CSV 다운로드 중...");
+
+    try {
+      const res = await fetch(endpoint, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (res.status === 401) {
+        localStorage.removeItem("access_token");
+        window.location.href = "login.html";
+        return;
+      }
+
+      if (!res.ok) {
+        let msg = "CSV 다운로드 실패";
+        try {
+          const data = await res.json();
+          msg = data?.detail || msg;
+        } catch {
+          // pass
+        }
+        throw new Error(msg);
+      }
+
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `transactions_${year}_${String(month).padStart(2, "0")}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+
+      setInlineStatus(exportStatusEl, `${year}년 ${month}월 CSV를 다운로드했습니다.`);
+    } catch (err) {
+      setInlineStatus(exportStatusEl, toKoreanErrorMessage(err, "CSV 다운로드에 실패했습니다."), true);
+    } finally {
+      exportCsvBtn.disabled = false;
+    }
   });
 
   addCategoryBtn.addEventListener("click", async () => {
@@ -775,7 +908,7 @@ export async function afterRenderSettings() {
       setInlineStatus(categoryStatusEl, "카테고리가 추가되었습니다.");
       await renderAndBindCategories({ reload: true });
     } catch (err) {
-      setInlineStatus(categoryStatusEl, err?.message || "카테고리 추가에 실패했습니다.", true);
+      setInlineStatus(categoryStatusEl, toKoreanErrorMessage(err, "카테고리 추가에 실패했습니다."), true);
     } finally {
       addCategoryBtn.disabled = false;
     }

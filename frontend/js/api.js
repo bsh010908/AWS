@@ -21,7 +21,7 @@ export async function apiRequest(base, endpoint, options = {}) {
   // 🔐 인증 만료 처리
   if (response.status === 401) {
     localStorage.removeItem("access_token");
-    window.location.href = "login.html";
+    window.location.href = "index.html";
     return;
   }
 

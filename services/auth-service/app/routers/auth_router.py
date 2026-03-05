@@ -27,6 +27,11 @@ def read_me(current_user: User = Depends(get_current_user)):
         "username": current_user.username,
         "email": current_user.email,
         "name": current_user.name,
+        "created_at": (
+            current_user.created_at.isoformat()
+            if getattr(current_user, "created_at", None)
+            else None
+        ),
         "plan": current_user.plan,
         "subscription_status": current_user.subscription_status,
         "next_billing_at": (

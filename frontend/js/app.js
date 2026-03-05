@@ -4,7 +4,7 @@ import { router } from "./router.js";
 const token = localStorage.getItem("access_token");
 
 if (!token) {
-  window.location.href = "login.html";
+  window.location.href = "index.html";
 }
 
 // DOM이 완전히 로드된 뒤 실행
