@@ -1,0 +1,46 @@
+name: Deploy AWS Ledger
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 코드 가져오기
+        uses: actions/checkout@v3
+
+      - name: AWS 인증
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
+          aws-region: ap-northeast-2
+
+      - name: ECR 로그인
+        run: |
+          aws ecr get-login-password --region ap-northeast-2 \
+          | docker login --username AWS --password-stdin YOUR_ECR_URL
+
+      - name: Docker 이미지 빌드
+        run: |
+          docker build -t ledger-service .
+
+      - name: ECR 업로드
+        run: |
+          docker tag ledger-service:latest YOUR_ECR_URL/ledger-service:latest
+          docker push YOUR_ECR_URL/ledger-service:latest
+
+      - name: EC2 자동 배포
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ec2-user
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd /home/ec2-user/project
+            docker compose pull
+            docker compose up -d
