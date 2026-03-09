@@ -7,23 +7,23 @@
   - `ledger_db`: 가계부 도메인
 
 ## 2. ERD
-
-```mermaid
-flowchart TD
-    USERS["USERS<br/>PK: user_id<br/>UK: username, email"]
-    DOCUMENTS["DOCUMENTS<br/>PK: document_id"]
-    CATEGORIES["CATEGORIES<br/>PK: category_id"]
-    TRANSACTIONS["TRANSACTIONS<br/>PK: tx_id<br/>FK: document_id, category_id"]
-    OCR_USAGE["OCR_USAGE_MONTHLY<br/>PK: (user_id, yyyymm)"]
-    BUDGETS["BUDGETS<br/>PK: budget_id"]
-
-    DOCUMENTS -->|document_id| TRANSACTIONS
-    CATEGORIES -->|category_id| TRANSACTIONS
-    USERS -.logical user_id relation.-> DOCUMENTS
-    USERS -.logical user_id relation.-> TRANSACTIONS
-    USERS -.logical user_id relation.-> OCR_USAGE
-    USERS -.logical user_id relation.-> BUDGETS
-    USERS -.logical user_id relation.-> CATEGORIES
+```text
+[USERS]
+ PK: user_id
+ UK: username, email
+   |
+   | (logical user_id relation)
+   +--> [DOCUMENTS] --------------------+
+   |      PK: document_id               |
+   |                                    v
+   +--> [CATEGORIES] --------------> [TRANSACTIONS]
+   |      PK: category_id              PK: tx_id
+   |                                   FK: document_id -> DOCUMENTS.document_id
+   +--> [OCR_USAGE_MONTHLY]            FK: category_id -> CATEGORIES.category_id
+   |      PK: (user_id, yyyymm)
+   |
+   +--> [BUDGETS]
+          PK: budget_id
 ```
 
 ## 3. 테이블 상세

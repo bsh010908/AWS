@@ -1,0 +1,9 @@
+graph TD
+    U[User] --> FE[Frontend]
+    FE --> AU[Auth Service]
+    FE --> LE[Ledger Service]
+    FE --> OC[OCR AI Service]
+    LE --> OC
+    AU --> DB[(MySQL)]
+    LE --> DB
+    ST[Stripe Webhook] --> AU

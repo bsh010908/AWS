@@ -1,0 +1,16 @@
+graph TD
+    USERS[USERS PK user_id UK username email]
+    DOCUMENTS[DOCUMENTS PK document_id]
+    CATEGORIES[CATEGORIES PK category_id]
+    TRANSACTIONS[TRANSACTIONS PK tx_id FK document_id FK category_id]
+    OCR_USAGE[OCR_USAGE_MONTHLY PK user_id yyyymm]
+    BUDGETS[BUDGETS PK budget_id]
+
+    USERS -. user_id logical relation .-> DOCUMENTS
+    USERS -. user_id logical relation .-> CATEGORIES
+    USERS -. user_id logical relation .-> TRANSACTIONS
+    USERS -. user_id logical relation .-> OCR_USAGE
+    USERS -. user_id logical relation .-> BUDGETS
+
+    DOCUMENTS -->|document_id| TRANSACTIONS
+    CATEGORIES -->|category_id| TRANSACTIONS
