@@ -1,16 +1,14 @@
 services:
 
-  mysql:
-    image: mysql:8
-    container_name: mysql
-    restart: always
-    environment:
-      MYSQL_ROOT_PASSWORD: 123456
+  frontend:
+    build: ./frontend
+    container_name: frontend
     ports:
-      - "3307:3306"
-    volumes:
-      - mysql-data:/var/lib/mysql
-      - ./mysql-init:/docker-entrypoint-initdb.d  
+      - "80:80"
+    depends_on:
+      - auth-service
+      - ledger-service
+      - ocr-ai-service
 
   auth-service:
     build: ./services/auth-service
@@ -21,8 +19,6 @@ services:
       - ./services/auth-service/.env
     environment:
       - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}
-    depends_on:
-      - mysql
 
   ledger-service:
     build: ./services/ledger-service
@@ -31,14 +27,9 @@ services:
       - "8002:8000"
     env_file:
       - ./services/ledger-service/.env
-    depends_on:
-      - mysql
 
   ocr-ai-service:
     build: ./services/ocr-ai-service
     container_name: ocr-ai-service
     ports:
       - "8003:8000"
-
-volumes:
-  mysql-data:
