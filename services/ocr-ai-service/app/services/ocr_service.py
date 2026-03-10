@@ -21,11 +21,23 @@ def extract_text_from_s3(bucket: str, key: str) -> str:
     lines = []
 
     for block in response.get("Blocks", []):
-        if block["BlockType"] == "LINE":
-            text = block.get("Text", "").strip()
-            if text:
-                print("OCR LINE:", text)   # ⭐ 여기
-                lines.append(text)
+
+        if block.get("BlockType") != "LINE":
+            continue
+
+        text = block.get("Text", "").strip()
+        confidence = block.get("Confidence", 0)
+
+        if not text:
+            continue
+
+        # 신뢰도 필터
+        if confidence < 80:
+            continue
+
+        print(f"OCR LINE ({confidence:.1f}%):", text)
+
+        lines.append(text)
 
     result = "\n".join(lines)
 
