@@ -1,12 +1,11 @@
 FROM nginx:alpine
 
-# nginx 기본 html 폴더 비우기
+# Remove default nginx static files.
 RUN rm -rf /usr/share/nginx/html/*
 
-# 프론트 파일 복사
+# Copy frontend static files.
 COPY . /usr/share/nginx/html
 
-# 80포트 사용
 EXPOSE 80
 
 CMD ["nginx", "-g", "daemon off;"]

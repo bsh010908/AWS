@@ -11,7 +11,7 @@ document.getElementById("loginForm")
     }
 
     try {
-      const res = await fetch("http://localhost:8001/login", {
+      const res = await fetch("http://43.201.103.180:8001/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password })
