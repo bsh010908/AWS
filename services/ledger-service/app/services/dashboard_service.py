@@ -239,34 +239,52 @@ def generate_ai_insight(summary: dict):
     try:
         client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
+        total_amount = summary.get("total_amount", 0)
+        diff_amount = summary.get("diff_amount", 0)
+        change_rate = summary.get("change_rate", 0)
+
+        top_category = summary.get("top_category") or {}
+        top_category_name = top_category.get("name", "기타")
+
         prompt = f"""
-        다음은 한 사용자의 월 소비 데이터입니다.
+사용자의 월 소비 데이터를 분석하세요.
 
-        총 지출: {summary.get("total_amount")}원
-        전월 대비 증감액: {summary.get("diff_amount", 0)}원
-        증감률: {summary.get("change_rate", 0)}%
-        가장 많이 쓴 카테고리: {summary.get("top_category", {}).get("name")}
+데이터:
+- 총 지출: {total_amount}원
+- 전월 대비 증감액: {diff_amount}원
+- 증감률: {change_rate}%
+- 가장 많이 소비한 카테고리: {top_category_name}
 
-        위 데이터를 바탕으로 1~2문장으로 간단한 소비 분석을 작성해주세요.
-        한국어로 자연스럽게 작성해주세요.
-        """
+규칙:
+- 1~2문장으로 작성
+- 한국어로 자연스럽게 작성
+- 소비 패턴을 간단히 설명
+- 조언이 있으면 짧게 포함
+"""
 
         response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
-                {"role": "system", "content": "당신은 가계부 소비 분석 전문가입니다."},
+                {
+                    "role": "system",
+                    "content": "당신은 가계부 데이터를 분석하는 금융 소비 분석 전문가입니다.",
+                },
                 {"role": "user", "content": prompt},
             ],
-            temperature=0.7,
-            max_tokens=120,
+            temperature=0.6,
+            max_tokens=100,
         )
 
-        return response.choices[0].message.content.strip()
+        content = response.choices[0].message.content
+
+        if content:
+            return content.strip()
+
+        return None
 
     except Exception as e:
         print("AI insight error:", e)
         return None
-
 # ===============================
 # 대시보드 통합 
 # ===============================
