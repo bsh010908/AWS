@@ -1,10 +1,9 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
   <title>AWS Ledger</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="stylesheet" href="css/style.css" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" />
   <style>
     :root {
@@ -22,6 +21,14 @@
       --shadow: 0 14px 40px rgba(15, 23, 42, 0.08);
     }
 
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
     body {
       margin: 0;
       font-family: "Pretendard", -apple-system, BlinkMacSystemFont, sans-serif;
@@ -32,6 +39,10 @@
         var(--landing-bg);
     }
 
+    body.menu-open {
+      overflow: hidden;
+    }
+
     .landing-wrap {
       width: min(1120px, calc(100% - 36px));
       margin: 0 auto;
@@ -40,7 +51,7 @@
     .navbar {
       position: sticky;
       top: 0;
-      z-index: 10;
+      z-index: 20;
       backdrop-filter: blur(10px);
       background: rgba(245, 247, 251, 0.78);
       border-bottom: 1px solid rgba(15, 23, 42, 0.05);
@@ -54,6 +65,36 @@
       align-items: center;
       justify-content: space-between;
       gap: 14px;
+    }
+
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .mobile-menu-btn {
+      display: none;
+      width: 44px;
+      height: 44px;
+      border: 1px solid #d1d5db;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.96);
+      padding: 0;
+      cursor: pointer;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 4px;
+      box-shadow: 0 10px 24px rgba(15, 23, 42, 0.1);
+    }
+
+    .mobile-menu-btn span {
+      display: block;
+      width: 18px;
+      height: 2px;
+      border-radius: 999px;
+      background: #111827;
     }
 
     .logo {
@@ -85,6 +126,16 @@
       border: 1px solid var(--line);
       background: #fff;
       color: var(--ink) !important;
+    }
+
+    .mobile-nav-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 15;
+      background: rgba(15, 23, 42, 0.42);
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.2s ease, visibility 0.2s ease;
     }
 
     .hero {
@@ -127,6 +178,7 @@
       line-height: 1.18;
       letter-spacing: -1px;
       font-size: clamp(32px, 5vw, 52px);
+      max-width: 760px;
     }
 
     .hero p {
@@ -146,7 +198,7 @@
 
     .btn-primary,
     .btn-secondary {
-      height: 48px;
+      min-height: 48px;
       padding: 0 18px;
       border-radius: 12px;
       display: inline-flex;
@@ -181,14 +233,30 @@
       line-height: 1.6;
     }
 
-    .features {
+    .features,
+    .flow,
+    .plans {
       margin-top: 22px;
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 14px;
     }
 
-    .feature-card {
+    .features {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .flow {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .plans {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .feature-card,
+    .flow-item,
+    .plan-card {
+      min-width: 0;
       background: var(--card);
       border: 1px solid var(--line);
       border-radius: var(--radius-lg);
@@ -196,32 +264,21 @@
       box-shadow: 0 8px 22px rgba(15, 23, 42, 0.05);
     }
 
-    .feature-title {
+    .feature-title,
+    .flow-title {
       font-size: 17px;
       font-weight: 800;
       margin: 0;
       letter-spacing: -0.2px;
     }
 
-    .feature-desc {
+    .feature-desc,
+    .flow-desc {
       margin-top: 10px;
       color: var(--muted-ink);
       line-height: 1.55;
       font-size: 14px;
-    }
-
-    .flow {
-      margin-top: 22px;
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 12px;
-    }
-
-    .flow-item {
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      background: #fff;
-      padding: 16px;
+      word-break: keep-all;
     }
 
     .flow-step {
@@ -229,34 +286,6 @@
       color: #0e7490;
       font-weight: 800;
       margin-bottom: 8px;
-    }
-
-    .flow-title {
-      font-size: 15px;
-      font-weight: 800;
-      margin: 0;
-    }
-
-    .flow-desc {
-      margin-top: 8px;
-      color: var(--muted-ink);
-      font-size: 13px;
-      line-height: 1.5;
-    }
-
-    .plans {
-      margin-top: 22px;
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 14px;
-    }
-
-    .plan-card {
-      border-radius: var(--radius-lg);
-      background: #fff;
-      border: 1px solid var(--line);
-      padding: 22px;
-      box-shadow: 0 8px 20px rgba(15, 23, 42, 0.05);
     }
 
     .plan-card.pro {
@@ -324,6 +353,7 @@
       margin: 8px 0 0;
       color: #cbd5e1;
       font-size: 15px;
+      line-height: 1.6;
     }
 
     .footer {
@@ -337,13 +367,60 @@
     @media (max-width: 980px) {
       .features,
       .flow {
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
       }
     }
 
     @media (max-width: 760px) {
+      .landing-wrap,
+      .nav-container {
+        width: min(1120px, calc(100% - 24px));
+      }
+
+      .nav-brand {
+        gap: 10px;
+      }
+
+      .mobile-menu-btn {
+        display: inline-flex;
+      }
+
+      .nav-links {
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        z-index: 20;
+        width: min(280px, 82vw);
+        background: #ffffff;
+        box-shadow: 18px 0 42px rgba(15, 23, 42, 0.18);
+        padding: 80px 18px 24px;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+        transform: translateX(-100%);
+        transition: transform 0.24s ease;
+      }
+
+      .nav-links a {
+        padding: 12px 14px;
+      }
+
+      body.menu-open .nav-links {
+        transform: translateX(0);
+      }
+
+      body.menu-open .mobile-nav-overlay {
+        opacity: 1;
+        visibility: visible;
+      }
+
       .hero {
         padding: 38px 22px;
+      }
+
+      .hero h1 {
+        max-width: none;
       }
 
       .features,
@@ -352,13 +429,37 @@
         grid-template-columns: 1fr;
       }
 
-      .landing-wrap,
-      .nav-container {
-        width: min(1120px, calc(100% - 24px));
+      .cta,
+      .final-cta {
+        align-items: stretch;
+      }
+
+      .btn-primary,
+      .btn-secondary {
+        width: 100%;
       }
 
       .section-title {
         margin-top: 42px;
+      }
+    }
+
+    @media (max-width: 520px) {
+      .hero {
+        padding: 28px 18px;
+      }
+
+      .hero p,
+      .section-sub,
+      .final-cta p {
+        font-size: 14px;
+      }
+
+      .feature-card,
+      .flow-item,
+      .plan-card,
+      .final-cta {
+        padding: 18px;
       }
     }
   </style>
@@ -366,95 +467,103 @@
 <body>
   <header class="navbar">
     <div class="nav-container">
-      <div class="logo">AWS Ledger</div>
-      <div class="nav-links">
-        <a href="#features">기능</a>
-        <a href="#plans">요금</a>
-        <a href="login.html" class="btn-outline">로그인</a>
+      <div class="nav-brand">
+        <button id="mobileLandingMenuBtn" class="mobile-menu-btn" type="button" aria-label="메뉴 열기" aria-controls="landingNav" aria-expanded="false">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+        <div class="logo">AWS Ledger</div>
       </div>
+      <nav id="landingNav" class="nav-links">
+        <a href="#features">기능</a>
+        <a href="#plans">요금제</a>
+        <a href="login.html" class="btn-outline">로그인</a>
+      </nav>
     </div>
   </header>
+  <div id="landingNavOverlay" class="mobile-nav-overlay"></div>
 
   <main class="landing-wrap">
     <section class="hero">
       <div class="eyebrow">AWS Textract + OpenAI + Stripe</div>
-      <h1>영수증 업로드부터<br />구독 결제까지 한 번에 관리</h1>
+      <h1>영수증 이미지를 올리면 자동으로 읽고, 분류하고, 정리하는 가계부 서비스</h1>
       <p>
-        업로드한 영수증을 OCR/AI로 자동 분류하고, 거래내역과 대시보드로 소비 흐름을 확인하세요.
-        FREE와 PRO 플랜 전환도 앱에서 바로 처리됩니다.
+        업로드한 영수증 이미지를 OCR과 AI로 분석해서 거래 내역을 자동 정리합니다.
+        수동 입력을 줄이고, 월별 소비 흐름과 예산 현황까지 한 화면에서 확인할 수 있습니다.
       </p>
       <div class="cta">
-        <a class="btn-primary" href="login.html">지금 시작하기</a>
+        <a class="btn-primary" href="login.html">바로 시작하기</a>
         <a class="btn-secondary" href="#features">기능 먼저 보기</a>
       </div>
     </section>
 
     <section id="features">
-      <h2 class="section-title">지금 구현된 핵심 기능</h2>
-      <p class="section-sub">현재 앱의 라우트와 API 동작을 기준으로 기능을 정리했습니다.</p>
+      <h2 class="section-title">핵심 기능</h2>
+      <p class="section-sub">이미지 업로드부터 소비 분석, 구독 결제까지 한 흐름으로 연결했습니다.</p>
       <div class="features">
         <article class="feature-card">
-          <h3 class="feature-title">업로드 + OCR 추출</h3>
-          <p class="feature-desc">이미지 영수증을 업로드하면 텍스트/금액/일시를 자동 추출하고 결과를 바로 보여줍니다.</p>
+          <h3 class="feature-title">영수증 업로드 + OCR 추출</h3>
+          <p class="feature-desc">이미지를 올리면 텍스트를 자동 추출하고, 금액과 날짜 같은 핵심 정보를 빠르게 읽어옵니다.</p>
         </article>
         <article class="feature-card">
-          <h3 class="feature-title">AI 카테고리 분류</h3>
-          <p class="feature-desc">OpenAI 기반 분류로 지출 카테고리를 제안하고, 불확실 항목은 기타로 안전 처리합니다.</p>
+          <h3 class="feature-title">AI 자동 분류</h3>
+          <p class="feature-desc">추출된 데이터를 기반으로 카테고리를 추천하고, 거래내역 정리를 더 빠르게 끝낼 수 있습니다.</p>
         </article>
         <article class="feature-card">
-          <h3 class="feature-title">구독 상태 동기화</h3>
-          <p class="feature-desc">Stripe Checkout/Webhook 연동으로 결제 성공, 취소, 갱신 상태를 사용자 플랜에 반영합니다.</p>
+          <h3 class="feature-title">구독/사용량 관리</h3>
+          <p class="feature-desc">무료/유료 플랜에 따라 OCR 사용량과 계정 상태를 확인하고 결제 흐름까지 연결할 수 있습니다.</p>
         </article>
       </div>
     </section>
 
     <section>
       <h2 class="section-title">사용 흐름</h2>
-      <p class="section-sub">앱에서 실제로 사용하는 화면 순서입니다.</p>
+      <p class="section-sub">복잡한 입력 없이 몇 단계만 거치면 거래내역이 정리됩니다.</p>
       <div class="flow">
         <article class="flow-item">
           <div class="flow-step">STEP 01</div>
           <h3 class="flow-title">로그인</h3>
-          <p class="flow-desc">토큰 기반 인증 후 앱으로 이동합니다.</p>
+          <p class="flow-desc">계정을 만들거나 로그인해서 개인 데이터 공간으로 진입합니다.</p>
         </article>
         <article class="flow-item">
           <div class="flow-step">STEP 02</div>
-          <h3 class="flow-title">영수증 업로드</h3>
-          <p class="flow-desc">업로드 페이지에서 파일 선택 후 분석을 실행합니다.</p>
+          <h3 class="flow-title">이미지 업로드</h3>
+          <p class="flow-desc">영수증 사진을 올리면 OCR이 텍스트를 추출하고 AI 분석을 준비합니다.</p>
         </article>
         <article class="flow-item">
           <div class="flow-step">STEP 03</div>
-          <h3 class="flow-title">거래/대시보드 확인</h3>
-          <p class="flow-desc">거래내역과 요약 지표를 보고 월별 소비를 파악합니다.</p>
+          <h3 class="flow-title">거래내역 검토</h3>
+          <p class="flow-desc">자동으로 채워진 금액, 날짜, 카테고리를 확인하고 필요한 값만 수정합니다.</p>
         </article>
         <article class="flow-item">
           <div class="flow-step">STEP 04</div>
-          <h3 class="flow-title">구독 관리</h3>
-          <p class="flow-desc">FREE/PRO 상태, OCR 사용량, 다음 결제일을 확인합니다.</p>
+          <h3 class="flow-title">대시보드 확인</h3>
+          <p class="flow-desc">월별 소비 추이, 최근 거래, 예산 현황을 대시보드에서 바로 확인합니다.</p>
         </article>
       </div>
     </section>
 
     <section id="plans">
       <h2 class="section-title">요금제</h2>
-      <p class="section-sub">현재 프론트/백엔드 코드 기준의 플랜 정보입니다.</p>
+      <p class="section-sub">사용량에 맞춰 무료 플랜과 PRO 플랜 중에서 선택할 수 있습니다.</p>
       <div class="plans">
         <article class="plan-card">
           <p class="plan-name">FREE</p>
-          <p class="plan-price">₩0 <span>/ 월</span></p>
+          <p class="plan-price">0원 <span>/ 월</span></p>
           <ul class="plan-list">
             <li>월 OCR 50회</li>
-            <li>기본 거래내역 조회</li>
-            <li>구독 결제 없음</li>
+            <li>기본 거래내역 정리</li>
+            <li>대시보드 조회</li>
           </ul>
         </article>
         <article class="plan-card pro">
           <p class="plan-name">PRO</p>
-          <p class="plan-price">₩4,900 <span>/ 월</span></p>
+          <p class="plan-price">4,900원 <span>/ 월</span></p>
           <ul class="plan-list">
-            <li>OCR 한도 확장</li>
-            <li>대시보드 인사이트 기능 사용</li>
-            <li>Stripe 자동 결제 및 구독 취소 지원</li>
+            <li>더 높은 OCR 사용량</li>
+            <li>고급 분류 및 관리 기능</li>
+            <li>구독 상태와 결제 이력 관리</li>
           </ul>
         </article>
       </div>
@@ -462,8 +571,8 @@
 
     <section class="final-cta">
       <div>
-        <h3>영수증 자동화 가계부를 바로 시작하세요.</h3>
-        <p>로그인 후 업로드 탭에서 첫 영수증 분석을 진행할 수 있습니다.</p>
+        <h3>이미지 한 장으로 지출 정리를 시작해보세요</h3>
+        <p>모바일에서도 부담 없이 업로드하고, 자동 정리된 데이터를 바로 확인할 수 있습니다.</p>
       </div>
       <a class="btn-primary" href="login.html">로그인하고 시작</a>
     </section>
@@ -475,7 +584,39 @@
 
   <script>
     const token = localStorage.getItem("access_token");
-    if (token) window.location.href = "app.html";
+    if (token) {
+      window.location.href = "app.html";
+    }
+
+    const body = document.body;
+    const menuBtn = document.getElementById("mobileLandingMenuBtn");
+    const overlay = document.getElementById("landingNavOverlay");
+    const nav = document.getElementById("landingNav");
+
+    function setMenuOpen(isOpen) {
+      body.classList.toggle("menu-open", isOpen);
+      menuBtn.setAttribute("aria-expanded", String(isOpen));
+    }
+
+    menuBtn.addEventListener("click", () => {
+      setMenuOpen(!body.classList.contains("menu-open"));
+    });
+
+    overlay.addEventListener("click", () => setMenuOpen(false));
+
+    nav.querySelectorAll("a").forEach((link) => {
+      link.addEventListener("click", () => {
+        if (window.innerWidth <= 760) {
+          setMenuOpen(false);
+        }
+      });
+    });
+
+    window.addEventListener("resize", () => {
+      if (window.innerWidth > 760) {
+        setMenuOpen(false);
+      }
+    });
   </script>
 </body>
 </html>

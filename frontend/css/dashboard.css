@@ -1,4 +1,4 @@
-/* dashboard.css */
+﻿/* dashboard.css */
 
 .layout {
   max-width: 1200px;
@@ -13,6 +13,7 @@
   justify-content:space-between;
   align-items:center;
   margin-bottom:28px;
+  gap: 16px;
 }
 
 .header-title{
@@ -25,48 +26,35 @@
   display:flex;
   align-items:center;
   gap:12px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
-
-/* year-month select */
 
 #yearSelect,
 #monthSelect{
-
   padding:8px 42px 8px 14px;
   border-radius:12px;
   border:1px solid #e5e7eb;
-
   background:#ffffff;
-
   font-size:14px;
   font-weight:500;
-
   cursor:pointer;
-
   appearance:none;
   -webkit-appearance:none;
   -moz-appearance:none;
-
   background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24'><path fill='%236b7280' d='M7 10l5 5 5-5z'/></svg>");
   background-repeat:no-repeat;
-
   background-position:right 16px center;
-
   box-sizing:border-box;
-
 }
 
-/* 년도 */
 #yearSelect{
   width:130px;
 }
 
-/* 월 */
 #monthSelect{
   width:100px;
 }
-
-/* plan badge */
 
 .plan-badge{
   padding:6px 14px;
@@ -76,8 +64,6 @@
   font-size:12px;
   font-weight:600;
 }
-
-/* ================= KPI ================= */
 
 .kpi-section {
   display:grid;
@@ -108,8 +94,6 @@
   font-size:22px;
 }
 
-/* ================= MAIN CHART ================= */
-
 .main-section{
   display:grid;
   grid-template-columns:1.2fr 1fr;
@@ -123,6 +107,7 @@
   padding:22px;
   border-radius:18px;
   border:1px solid #e5e7eb;
+  min-width: 0;
 }
 
 .chart-card h3{
@@ -144,8 +129,6 @@
   height:100% !important;
 }
 
-/* ================= RECENT + PREDICT ================= */
-
 .bottom-section{
   display:grid;
   grid-template-columns:1.2fr 1fr;
@@ -159,6 +142,7 @@
   padding:22px;
   border-radius:18px;
   border:1px solid #e5e7eb;
+  min-width: 0;
 }
 
 .recent-item{
@@ -166,6 +150,7 @@
   align-items:center;
   padding:10px 0;
   border-bottom:1px solid #e5e7eb;
+  gap: 12px;
 }
 
 .recent-item span:first-child{
@@ -183,8 +168,6 @@
   text-align:right;
   color:#6b7280;
 }
-
-/* ================= MONTH COMPARE ================= */
 
 .month-compare{
   margin-top:6px;
@@ -204,13 +187,9 @@
   color:#6b7280;
 }
 
-/* ================= 12 MONTH CHART ================= */
-
 .chart-card.wide{
   grid-column:span 2;
 }
-
-/* ================= BUDGET ================= */
 
 .budget-info{
   margin-top:6px;
@@ -239,9 +218,19 @@
   color:#ef4444;
 }
 
-/* ================= MOBILE ================= */
-
 @media (max-width:900px){
+  .layout {
+    padding: 20px 0;
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .header-controls {
+    justify-content: flex-start;
+  }
 
   .kpi-section,
   .main-section,
@@ -253,5 +242,29 @@
     margin-top:24px;
     grid-column:span 1;
   }
+}
 
+@media (max-width:520px){
+  .header-title {
+    font-size: 20px;
+  }
+
+  .header-controls {
+    width: 100%;
+  }
+
+  #yearSelect,
+  #monthSelect {
+    width: 100%;
+  }
+
+  .recent-item {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .recent-item span:nth-child(2),
+  .recent-item small {
+    text-align: left;
+  }
 }

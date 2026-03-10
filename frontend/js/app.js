@@ -1,17 +1,25 @@
-import { router } from "./router.js";
+﻿import { router } from "./router.js";
 
-// 🔐 로그인 체크
 const token = localStorage.getItem("access_token");
 
 if (!token) {
   window.location.href = "index.html";
 }
 
-// DOM이 완전히 로드된 뒤 실행
-window.addEventListener("DOMContentLoaded", () => {
+function setSidebarOpen(isOpen) {
+  document.body.classList.toggle("sidebar-open", isOpen);
 
-  // 로그아웃 버튼 안전 처리
+  const menuBtn = document.getElementById("mobileMenuBtn");
+  if (menuBtn) {
+    menuBtn.setAttribute("aria-expanded", String(isOpen));
+  }
+}
+
+window.addEventListener("DOMContentLoaded", () => {
   const logoutBtn = document.getElementById("logoutBtn");
+  const menuBtn = document.getElementById("mobileMenuBtn");
+  const overlay = document.getElementById("sidebarOverlay");
+  const navLinks = document.querySelectorAll(".nav-link");
 
   if (logoutBtn) {
     logoutBtn.addEventListener("click", () => {
@@ -20,9 +28,37 @@ window.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // SPA 라우터 실행
+  if (menuBtn) {
+    menuBtn.addEventListener("click", () => {
+      const isOpen = document.body.classList.contains("sidebar-open");
+      setSidebarOpen(!isOpen);
+    });
+  }
+
+  if (overlay) {
+    overlay.addEventListener("click", () => setSidebarOpen(false));
+  }
+
+  navLinks.forEach((link) => {
+    link.addEventListener("click", () => {
+      if (window.innerWidth <= 900) {
+        setSidebarOpen(false);
+      }
+    });
+  });
+
+  window.addEventListener("resize", () => {
+    if (window.innerWidth > 900) {
+      setSidebarOpen(false);
+    }
+  });
+
   router();
 });
 
-// 해시 변경 시 라우터 실행
-window.addEventListener("hashchange", router);
+window.addEventListener("hashchange", () => {
+  if (window.innerWidth <= 900) {
+    setSidebarOpen(false);
+  }
+  router();
+});

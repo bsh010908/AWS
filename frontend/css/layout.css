@@ -1,8 +1,51 @@
-/* layout.css */
+﻿/* layout.css */
+
+body.sidebar-open {
+  overflow: hidden;
+}
 
 .app-layout {
   display: flex;
-  height: 100vh;
+  min-height: 100vh;
+  background: #f8fafc;
+}
+
+.mobile-menu-btn {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  z-index: 1100;
+  display: none;
+  width: 48px;
+  height: 48px;
+  border: 1px solid #d1d5db;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.12);
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 0;
+  cursor: pointer;
+}
+
+.mobile-menu-btn span {
+  display: block;
+  width: 18px;
+  height: 2px;
+  border-radius: 999px;
+  background: #111827;
+}
+
+.sidebar-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.42);
+  backdrop-filter: blur(3px);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+  z-index: 950;
 }
 
 .sidebar {
@@ -12,6 +55,7 @@
   padding: 30px 20px;
   display: flex;
   flex-direction: column;
+  flex-shrink: 0;
 }
 
 .logo {
@@ -20,16 +64,22 @@
   margin-bottom: 40px;
 }
 
+.sidebar nav {
+  display: grid;
+  gap: 10px;
+}
+
 .nav-link {
   display: block;
   padding: 12px;
   border-radius: 8px;
   color: #cbd5e1;
   text-decoration: none;
-  margin-bottom: 10px;
+  margin-bottom: 0;
 }
 
-.nav-link:hover {
+.nav-link:hover,
+.nav-link.active {
   background: #1f2937;
   color: white;
 }
@@ -51,6 +101,65 @@
 
 main {
   flex: 1;
+  min-width: 0;
   padding: 40px;
   overflow-y: auto;
+}
+
+@media (max-width: 900px) {
+  .app-layout {
+    display: block;
+  }
+
+  .mobile-menu-btn {
+    display: inline-flex;
+    flex-direction: column;
+  }
+
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: min(280px, 82vw);
+    transform: translateX(-100%);
+    transition: transform 0.24s ease;
+    z-index: 1000;
+    box-shadow: 16px 0 42px rgba(15, 23, 42, 0.28);
+    padding-top: 84px;
+  }
+
+  body.sidebar-open .sidebar {
+    transform: translateX(0);
+  }
+
+  body.sidebar-open .sidebar-overlay {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  main {
+    width: 100%;
+    padding: 76px 16px 24px;
+  }
+}
+
+@media (max-width: 520px) {
+  .mobile-menu-btn {
+    top: 12px;
+    left: 12px;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+  }
+
+  .sidebar {
+    width: min(260px, 84vw);
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  main {
+    padding: 68px 12px 20px;
+  }
 }
