@@ -4,7 +4,8 @@ textract = boto3.client("textract", region_name="ap-northeast-2")
 
 
 def extract_text_from_s3(bucket: str, key: str) -> str:
-    response = textract.analyze_expense(
+
+    response = textract.detect_document_text(
         Document={
             "S3Object": {
                 "Bucket": bucket,
@@ -15,15 +16,10 @@ def extract_text_from_s3(bucket: str, key: str) -> str:
 
     lines = []
 
-    for expense_doc in response.get("ExpenseDocuments", []):
-        for field in expense_doc.get("SummaryFields", []):
-
-            label = field.get("Type", {}).get("Text", "")
-            value = field.get("ValueDetection", {}).get("Text", "")
-
-            if label and value:
-                lines.append(f"{label}: {value}")
-            elif value:
-                lines.append(value)
+    for block in response.get("Blocks", []):
+        if block["BlockType"] == "LINE":
+            text = block.get("Text", "").strip()
+            if text:
+                lines.append(text)
 
     return "\n".join(lines)
