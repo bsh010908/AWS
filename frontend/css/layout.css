@@ -72,6 +72,9 @@ body.sidebar-open {
 .sidebar nav {
   display: grid;
   gap: 10px;
+  flex: 1;
+  align-content: start;
+  min-height: 0;
 }
 
 .nav-link {
@@ -91,7 +94,7 @@ body.sidebar-open {
 }
 
 .logout-btn {
-  margin-top: auto;
+  margin-top: 16px;
   padding: 10px;
   background: #ffffff;
   border: 1px solid #e5e7eb;
@@ -99,6 +102,7 @@ body.sidebar-open {
   border-radius: 8px;
   cursor: pointer;
   font-size: clamp(14px, 1vw, 15px);
+  flex-shrink: 0;
 }
 
 .logout-btn:hover {
@@ -162,7 +166,7 @@ body.mobile-layout main {
     max(16px, env(safe-area-inset-left, 0px));
 }
 
-@media (max-width: 900px), (hover: none) and (pointer: coarse) {
+@media (max-width: 1024px), (hover: none) and (pointer: coarse) {
   .app-layout {
     display: block;
     height: 100vh;
@@ -207,7 +211,7 @@ body.mobile-layout main {
   }
 }
 
-@media (max-width: 520px), (hover: none) and (pointer: coarse) and (max-width: 768px) {
+@media (max-width: 640px), (hover: none) and (pointer: coarse) and (max-width: 1024px) {
   .mobile-menu-btn {
     top: calc(12px + env(safe-area-inset-top, 0px));
     left: max(12px, env(safe-area-inset-left, 0px));

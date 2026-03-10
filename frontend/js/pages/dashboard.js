@@ -259,9 +259,10 @@ function renderMonthlyChart(data) {
           data: normalizedData.map((d) => d.total),
           backgroundColor: "#6366f1",
           borderRadius: 8,
-          maxBarThickness: 14,
-          categoryPercentage: 0.9,
-          barPercentage: 0.58,
+          barThickness: window.innerWidth <= 520 ? 6 : 8,
+          maxBarThickness: window.innerWidth <= 520 ? 6 : 8,
+          categoryPercentage: 0.82,
+          barPercentage: 0.42,
         },
       ],
     },
@@ -277,6 +278,7 @@ function renderMonthlyChart(data) {
       },
       scales: {
         x: {
+          offset: true,
           grid: {
             display: false,
           },

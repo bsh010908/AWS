@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <title>AWS Ledger</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" />
   <style>
     :root {
@@ -371,7 +371,7 @@
       }
     }
 
-    @media (max-width: 760px) {
+    @media (max-width: 1024px), (hover: none) and (pointer: coarse) {
       .landing-wrap,
       .nav-container {
         width: min(1120px, calc(100% - 24px));
@@ -395,13 +395,16 @@
         background: #ffffff;
         opacity: 1;
         box-shadow: 18px 0 42px rgba(15, 23, 42, 0.18);
-        padding: 80px 18px 24px;
+        padding: calc(80px + env(safe-area-inset-top, 0px)) 18px max(24px, env(safe-area-inset-bottom, 0px));
         flex-direction: column;
         align-items: stretch;
         gap: 8px;
         transform: translateX(-100%);
         transition: transform 0.24s ease;
         border-right: 1px solid #e5e7eb;
+        height: 100vh;
+        height: 100dvh;
+        overflow: hidden;
       }
 
       .nav-links a {
@@ -457,7 +460,7 @@
       }
     }
 
-    @media (max-width: 520px) {
+    @media (max-width: 640px), (hover: none) and (pointer: coarse) and (max-width: 1024px) {
       .hero {
         padding: 28px 18px;
       }
