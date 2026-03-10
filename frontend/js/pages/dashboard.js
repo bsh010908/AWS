@@ -1,4 +1,4 @@
-import { apiRequest, AUTH_BASE, LEDGER_BASE } from "../api.js";
+﻿import { apiRequest, AUTH_BASE, LEDGER_BASE } from "../api.js";
 
 let categoryChart;
 let dailyChart;
@@ -19,7 +19,7 @@ export async function renderDashboard() {
         <div class="header">
 
           <div class="header-title">
-            대시보드
+            ??쒕낫??
           </div>
 
           <div class="header-controls">
@@ -36,12 +36,12 @@ export async function renderDashboard() {
       <!-- KPI -->
       <div class="kpi-section">
         <div class="kpi-card highlight">
-          <span>총 지출</span>
-          <h2 id="totalAmount">0 원</h2>
+          <span>珥?吏異?/span>
+          <h2 id="totalAmount">0 ??/h2>
 
           <div class="budget-info">
-            <div>예산 <b id="budgetAmount">0 원</b></div>
-            <div>남은 금액 <b id="remainingAmount">0 원</b></div>
+            <div>?덉궛 <b id="budgetAmount">0 ??/b></div>
+            <div>?⑥? 湲덉븸 <b id="remainingAmount">0 ??/b></div>
           </div>
 
           <div class="budget-bar">
@@ -51,28 +51,28 @@ export async function renderDashboard() {
           <div id="monthCompare" class="month-compare"></div>
         </div>
         <div class="kpi-card">
-          <span>이번 달 영수증 수</span>
-          <h2 id="receiptCount">0 건</h2>
+          <span>?대쾲 ???곸닔利???/span>
+          <h2 id="receiptCount">0 嫄?/h2>
         </div>
 
         <div class="kpi-card">
-          <span>최대 소비 카테고리</span>
+          <span>理쒕? ?뚮퉬 移댄뀒怨좊━</span>
           <h2 id="topCategory">-</h2>
         </div>
       </div>
 
-      <!-- AI 인사이트 -->
+      <!-- AI ?몄궗?댄듃 -->
       <div class="ai-card">
-        <h3>AI 소비 분석</h3>
+        <h3>AI ?뚮퉬 遺꾩꽍</h3>
         <p id="aiInsight">-</p>
       </div>
 
-      <!-- 차트 영역 -->
+      <!-- 李⑦듃 ?곸뿭 -->
       <div class="main-section">
 
         <div class="chart-card">
           <div class="chart-header">
-            <h3>카테고리별 소비</h3>
+            <h3>移댄뀒怨좊━蹂??뚮퉬</h3>
           </div>
           <div class="chart-wrapper">
             <canvas id="categoryChart"></canvas>
@@ -80,7 +80,7 @@ export async function renderDashboard() {
         </div>
 
         <div class="chart-card">
-          <h3>일별 소비</h3>
+          <h3>?쇰퀎 ?뚮퉬</h3>
           <div class="chart-wrapper">
             <canvas id="dailyChart"></canvas>
           </div>
@@ -90,23 +90,23 @@ export async function renderDashboard() {
 
       
       <div class="chart-card wide">
-        <h3>최근 12개월 소비</h3>
+        <h3>理쒓렐 12媛쒖썡 ?뚮퉬</h3>
         <div class="chart-wrapper">
           <canvas id="monthlyChart"></canvas>
         </div>
       </div>
 
-      <!-- 하단 -->
+      <!-- ?섎떒 -->
       <div class="bottom-section">
 
         <div class="recent-card">
-          <h3>최근 소비</h3>
+          <h3>理쒓렐 ?뚮퉬</h3>
           <div id="recentList"></div>
         </div>
 
         <div class="predict-card">
-          <span>이번 달 예상 지출</span>
-          <h2 id="predictedAmount">0 원</h2>
+          <span>?대쾲 ???덉긽 吏異?/span>
+          <h2 id="predictedAmount">0 ??/h2>
           <small id="avgDailyText"></small>
         </div>
 
@@ -150,7 +150,7 @@ async function loadDashboard(year, month) {
     renderDailyChart(data.daily_chart);
     renderRecent(data.recent_transactions);
 
-    /* 🔥 최근 12개월 그래프 */
+    /* ?뵦 理쒓렐 12媛쒖썡 洹몃옒??*/
     loadMonthlyChart();
 
     /* AI */
@@ -158,7 +158,7 @@ async function loadDashboard(year, month) {
       loadAiInsight(selectedYear, selectedMonth);
     } else {
       const insightBox = document.getElementById("aiInsight");
-      insightBox.innerText = "PRO 플랜에서 이용 가능합니다.";
+      insightBox.innerText = "PRO ?뚮옖?먯꽌 ?댁슜 媛?ν빀?덈떎.";
     }
   } catch (error) {
     if (error.message.includes("401")) {
@@ -169,14 +169,14 @@ async function loadDashboard(year, month) {
 }
 
 /* ===========================
-   🔥 AI INSIGHT
+   ?뵦 AI INSIGHT
 =========================== */
 
 async function loadAiInsight(year, month) {
   const insightBox = document.getElementById("aiInsight");
   if (!insightBox) return;
 
-  insightBox.innerText = "AI 분석 생성 중...";
+  insightBox.innerText = "AI 遺꾩꽍 ?앹꽦 以?..";
 
   try {
     const data = await apiRequest(
@@ -184,14 +184,14 @@ async function loadAiInsight(year, month) {
       `/dashboard/ai-insight?year=${year}&month=${month}`,
     );
 
-    insightBox.innerText = data.ai_insight || "분석 결과 없음";
+    insightBox.innerText = data.ai_insight || "遺꾩꽍 寃곌낵 ?놁쓬";
   } catch {
-    insightBox.innerText = "AI 분석 실패";
+    insightBox.innerText = "AI 遺꾩꽍 ?ㅽ뙣";
   }
 }
 
 /* ===========================
-   🔥 최근 12개월 차트
+   ?뵦 理쒓렐 12媛쒖썡 李⑦듃
 =========================== */
 
 async function loadMonthlyChart() {
@@ -201,11 +201,37 @@ async function loadMonthlyChart() {
     renderMonthlyChart(data);
   } catch {
     console.error("최근 12개월 로딩 실패");
+    renderMonthlyChart([]);
   }
+}
+
+function normalizeLast12Months(data = []) {
+  const now = new Date();
+  const monthMap = new Map();
+
+  data.forEach((item) => {
+    if (!item || !item.month) return;
+    monthMap.set(String(item.month), Number(item.total) || 0);
+  });
+
+  const normalized = [];
+
+  for (let offset = 11; offset >= 0; offset -= 1) {
+    const date = new Date(now.getFullYear(), now.getMonth() - offset, 1);
+    const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+
+    normalized.push({
+      month: monthKey,
+      total: monthMap.get(monthKey) ?? 0,
+    });
+  }
+
+  return normalized;
 }
 
 function renderMonthlyChart(data) {
   const ctx = document.getElementById("monthlyChart").getContext("2d");
+  const normalizedData = normalizeLast12Months(data);
 
   if (monthlyChart) monthlyChart.destroy();
 
@@ -213,11 +239,15 @@ function renderMonthlyChart(data) {
     type: "bar",
 
     data: {
-      labels: data.map((d) => d.month),
+      labels: normalizedData.map((d) => d.month.slice(5)),
       datasets: [
         {
-          data: data.map((d) => d.total),
+          data: normalizedData.map((d) => d.total),
           backgroundColor: "#6366f1",
+          borderRadius: 8,
+          maxBarThickness: 22,
+          categoryPercentage: 0.72,
+          barPercentage: 0.82,
         },
       ],
     },
@@ -225,6 +255,36 @@ function renderMonthlyChart(data) {
     options: {
       responsive: true,
       maintainAspectRatio: false,
+      animation: false,
+      plugins: {
+        legend: {
+          display: false,
+        },
+      },
+      scales: {
+        x: {
+          grid: {
+            display: false,
+          },
+          ticks: {
+            autoSkip: false,
+            maxRotation: 0,
+            minRotation: 0,
+            font: {
+              size: window.innerWidth <= 520 ? 10 : 11,
+            },
+          },
+        },
+        y: {
+          beginAtZero: true,
+          ticks: {
+            precision: 0,
+            font: {
+              size: window.innerWidth <= 520 ? 10 : 11,
+            },
+          },
+        },
+      },
     },
   });
 }
@@ -252,7 +312,7 @@ function initMonthSelector(){
     const option=document.createElement("option");
 
     option.value=y;
-    option.textContent=`${y}년`;
+    option.textContent=`${y}??;
 
     if(y===selectedYear) option.selected=true;
 
@@ -269,7 +329,7 @@ function initMonthSelector(){
     const option=document.createElement("option");
 
     option.value=m;
-    option.textContent=`${m}월`;
+    option.textContent=`${m}??;
 
     if(m===selectedMonth) option.selected=true;
 
@@ -301,18 +361,18 @@ function initMonthSelector(){
 
 function renderSummary(summary, plan) {
   document.getElementById("totalAmount").innerText =
-    summary.total_amount.toLocaleString() + " 원";
+    summary.total_amount.toLocaleString() + " ??;
 
   /* ======================
-   예산 표시
+   ?덉궛 ?쒖떆
 ====================== */
 
   if (summary.budget !== undefined) {
     document.getElementById("budgetAmount").innerText =
-      summary.budget.toLocaleString() + " 원";
+      summary.budget.toLocaleString() + " ??;
 
     document.getElementById("remainingAmount").innerText =
-      summary.remaining.toLocaleString() + " 원";
+      summary.remaining.toLocaleString() + " ??;
 
     let percent = 0;
 
@@ -336,31 +396,31 @@ function renderSummary(summary, plan) {
       }
     }
 
-    /* 🔥 여기 추가 */
+    /* ?뵦 ?ш린 異붽? */
 
     const warning = document.getElementById("budgetWarning");
 
     if (warning) {
       if (percent >= 100) {
-        warning.innerText = "⚠ 예산을 초과했습니다";
+        warning.innerText = "???덉궛??珥덇낵?덉뒿?덈떎";
       } else if (percent >= 80) {
-        warning.innerText = "⚠ 예산의 80% 이상 사용했습니다";
+        warning.innerText = "???덉궛??80% ?댁긽 ?ъ슜?덉뒿?덈떎";
       } else {
         warning.innerText = "";
       }
     }
   }
   document.getElementById("receiptCount").innerText =
-    summary.transaction_count + " 건";
+    summary.transaction_count + " 嫄?;
 
   document.getElementById("topCategory").innerText =
     summary.top_category?.name || "-";
 
   document.getElementById("predictedAmount").innerText =
-    summary.predicted_total.toLocaleString() + " 원";
+    summary.predicted_total.toLocaleString() + " ??;
 
   document.getElementById("avgDailyText").innerText =
-    `하루 평균 ${summary.avg_daily_amount.toLocaleString()} 원`;
+    `?섎（ ?됯퇏 ${summary.avg_daily_amount.toLocaleString()} ??;
 
   const compareEl = document.getElementById("monthCompare");
 
@@ -371,7 +431,7 @@ function renderSummary(summary, plan) {
     compareEl.className =
       "month-compare " + (diff > 0 ? "up" : diff < 0 ? "down" : "same");
 
-    compareEl.innerText = `전월 대비 ${diff > 0 ? "▲" : diff < 0 ? "▼" : "-"} ${Math.abs(diff).toLocaleString()}원 (${rate}%)`;
+    compareEl.innerText = `?꾩썡 ?鍮?${diff > 0 ? "?? : diff < 0 ? "?? : "-"} ${Math.abs(diff).toLocaleString()}??(${rate}%)`;
   }
 }
 
@@ -424,7 +484,7 @@ function renderDailyChart(dailyData) {
 
       datasets: [
         {
-          label: "일 소비",
+          label: "???뚮퉬",
           data: dailyData.map((d) => d.total_amount),
           borderColor: "#6366f1",
           backgroundColor: "rgba(99,102,241,0.1)",
@@ -450,7 +510,7 @@ function renderRecent(list) {
   container.innerHTML = "";
 
   if (!list || list.length === 0) {
-    container.innerHTML = "<p>최근 거래 내역이 없습니다.</p>";
+    container.innerHTML = "<p>理쒓렐 嫄곕옒 ?댁뿭???놁뒿?덈떎.</p>";
     return;
   }
 
@@ -468,8 +528,8 @@ function renderRecent(list) {
     const date = item.occurred_at ? item.occurred_at.slice(0, 10) : "";
 
     div.innerHTML = `
-    <span>${item.merchant_name || "상호명 없음"}</span>
-    <span>${item.amount.toLocaleString()} 원</span>
+    <span>${item.merchant_name || "?곹샇紐??놁쓬"}</span>
+    <span>${item.amount.toLocaleString()} ??/span>
     <small>${date}</small>
   `;
 

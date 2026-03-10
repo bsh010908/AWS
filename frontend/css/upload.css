@@ -9,7 +9,7 @@
 }
 
 .upload-title {
-  font-size: 26px;
+  font-size: clamp(20px, 2.2vw, 26px);
   font-weight: 700;
   margin-bottom: 30px;
 }
@@ -79,17 +79,17 @@
 }
 
 .upload-icon {
-  font-size: 44px;
+  font-size: clamp(34px, 3vw, 44px);
   margin-bottom: 10px;
 }
 
 .drop-content p {
-  font-size: 14px;
+  font-size: 13px;
   color: #6b7280;
 }
 
 .upload-hint {
-  font-size: 12px;
+  font-size: 11px;
   color: #9ca3af;
   margin-top: 6px;
 }
@@ -123,7 +123,7 @@
   border: none;
   background: #0f172a;
   color: white;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
   cursor: pointer;
   transition: 0.15s;
@@ -146,7 +146,7 @@
 
 .upload-status {
   margin-top: 12px;
-  font-size: 14px;
+  font-size: 13px;
   color: #6b7280;
 }
 
@@ -165,7 +165,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  font-size: 13px;
+  font-size: 12px;
   color: #4b5563;
 }
 
@@ -188,7 +188,7 @@
 
 .upload-guide h4 {
   margin: 0 0 8px;
-  font-size: 14px;
+  font-size: 13px;
   color: #111827;
 }
 
@@ -198,7 +198,7 @@
   color: #4b5563;
   display: grid;
   gap: 6px;
-  font-size: 13px;
+  font-size: 12px;
 }
 
 
@@ -207,7 +207,7 @@
 ====================================== */
 
 .result-card h3 {
-  font-size: 20px;
+  font-size: clamp(16px, 1.6vw, 20px);
   font-weight: 600;
   margin-bottom: 20px;
 }
@@ -229,14 +229,14 @@
 }
 
 .result-info span {
-  font-size: 13px;
+  font-size: 12px;
   color: #6b7280;
   display: block;
   margin-bottom: 4px;
 }
 
 .result-info strong {
-  font-size: 20px;
+  font-size: clamp(16px, 1.6vw, 20px);
   font-weight: 600;
   color: #111827;
 }
@@ -252,7 +252,7 @@
 }
 
 .empty-icon {
-  font-size: 42px;
+  font-size: clamp(30px, 3vw, 42px);
   margin-bottom: 14px;
 }
 
@@ -280,7 +280,7 @@
 
 .result-note {
   margin: 10px 0 0;
-  font-size: 12px;
+  font-size: 11px;
   color: #6b7280;
 }
 
@@ -298,6 +298,9 @@
 }
 
 @media (max-width: 768px) {
+  .upload-title {
+    font-size: 18px;
+  }
 
   .upload-box,
   .result-card {
@@ -306,6 +309,27 @@
 
   .drop-zone {
     padding: 36px 20px;
+  }
+
+}
+
+@media (max-width: 520px) {
+
+  .drop-content p,
+  .upload-status,
+  .upload-guide h4 {
+    font-size: 12px;
+  }
+
+  .upload-tips,
+  .meta-row,
+  .result-info span {
+    font-size: 11px;
+  }
+
+  .result-card h3,
+  .result-info strong {
+    font-size: 15px;
   }
 
 }

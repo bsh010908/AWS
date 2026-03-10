@@ -17,7 +17,7 @@
 }
 
 .header-title{
-  font-size:24px;
+  font-size:clamp(20px, 2vw, 24px);
   font-weight:700;
   color:#111827;
 }
@@ -85,13 +85,13 @@
 }
 
 .kpi-card span{
-  font-size:13px;
+  font-size:12px;
   color:#6b7280;
 }
 
 .kpi-card h2{
   margin-top:8px;
-  font-size:22px;
+  font-size:clamp(18px, 1.8vw, 22px);
 }
 
 .main-section{
@@ -111,7 +111,7 @@
 }
 
 .chart-card h3{
-  font-size:16px;
+  font-size:clamp(15px, 1.2vw, 16px);
   font-weight:600;
   color:#111827;
 }
@@ -191,6 +191,10 @@
   grid-column:span 2;
 }
 
+.chart-card.wide .chart-wrapper{
+  height: 200px;
+}
+
 .budget-info{
   margin-top:6px;
   font-size:13px;
@@ -246,7 +250,7 @@
 
 @media (max-width:520px){
   .header-title {
-    font-size: 20px;
+    font-size: 18px;
   }
 
   .header-controls {
@@ -266,5 +270,20 @@
   .recent-item span:nth-child(2),
   .recent-item small {
     text-align: left;
+  }
+
+  .kpi-card,
+  .chart-card,
+  .recent-card,
+  .predict-card {
+    padding: 18px;
+  }
+
+  .kpi-card h2 {
+    font-size: 18px;
+  }
+
+  .chart-card.wide .chart-wrapper {
+    height: 160px;
   }
 }
