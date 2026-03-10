@@ -12,6 +12,11 @@ body.sidebar-open {
   overflow: hidden;
 }
 
+html,
+body {
+  overflow-x: hidden;
+}
+
 .mobile-menu-btn {
   position: fixed;
   top: 16px;
@@ -51,6 +56,7 @@ body.sidebar-open {
 }
 
 .sidebar {
+  position: relative;
   width: 240px;
   background: #111827;
   color: white;
@@ -75,6 +81,7 @@ body.sidebar-open {
   flex: 1;
   align-content: start;
   min-height: 0;
+  padding-bottom: 72px;
 }
 
 .nav-link {
@@ -94,7 +101,11 @@ body.sidebar-open {
 }
 
 .logout-btn {
-  margin-top: 16px;
+  position: absolute;
+  left: 20px;
+  right: 20px;
+  bottom: 20px;
+  margin-top: 0;
   padding: 10px;
   background: #ffffff;
   border: 1px solid #e5e7eb;
@@ -135,8 +146,9 @@ body.mobile-layout .sidebar {
   left: 0;
   bottom: 0;
   width: min(280px, 82vw);
-  transform: translateX(-100%);
+  transform: translate3d(-105%, 0, 0);
   transition: transform 0.24s ease;
+  will-change: transform;
   z-index: 1000;
   box-shadow: 16px 0 42px rgba(15, 23, 42, 0.28);
   padding-top: calc(84px + env(safe-area-inset-top, 0px));
@@ -146,8 +158,18 @@ body.mobile-layout .sidebar {
   overflow: hidden;
 }
 
+body.mobile-layout .sidebar nav {
+  padding-bottom: 76px;
+}
+
+body.mobile-layout .logout-btn {
+  left: 16px;
+  right: 16px;
+  bottom: max(16px, env(safe-area-inset-bottom, 0px));
+}
+
 body.mobile-layout.sidebar-open .sidebar {
-  transform: translateX(0);
+  transform: translate3d(0, 0, 0);
 }
 
 body.mobile-layout.sidebar-open .sidebar-overlay {
@@ -184,8 +206,9 @@ body.mobile-layout main {
     left: 0;
     bottom: 0;
     width: min(280px, 82vw);
-    transform: translateX(-100%);
+    transform: translate3d(-105%, 0, 0);
     transition: transform 0.24s ease;
+    will-change: transform;
     z-index: 1000;
     box-shadow: 16px 0 42px rgba(15, 23, 42, 0.28);
     padding-top: 84px;
@@ -194,8 +217,18 @@ body.mobile-layout main {
     overflow: hidden;
   }
 
+  .sidebar nav {
+    padding-bottom: 76px;
+  }
+
+  .logout-btn {
+    left: 16px;
+    right: 16px;
+    bottom: 16px;
+  }
+
   body.sidebar-open .sidebar {
-    transform: translateX(0);
+    transform: translate3d(0, 0, 0);
   }
 
   body.sidebar-open .sidebar-overlay {
@@ -235,6 +268,12 @@ body.mobile-layout main {
     width: min(260px, 84vw);
     padding-left: max(16px, env(safe-area-inset-left, 0px));
     padding-right: 16px;
+  }
+
+  .logout-btn,
+  body.mobile-layout .logout-btn {
+    left: 16px;
+    right: 16px;
   }
 
   main {

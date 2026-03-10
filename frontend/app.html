@@ -5,14 +5,48 @@
     <title>AWS Ledger</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" />
-    <link rel="stylesheet" href="css/base.css" />
-    <link rel="stylesheet" href="css/layout.css" />
-    <link rel="stylesheet" href="css/dashboard.css" />
-    <link rel="stylesheet" href="css/upload.css" />
-    <link rel="stylesheet" href="css/receipts.css" />
-    <link rel="stylesheet" href="css/modal.css" />
-    <link rel="stylesheet" href="css/subscription.css" />
-    <link rel="stylesheet" href="css/settings.css" />
+    <link rel="stylesheet" href="css/base.css?v=20260310-4" />
+    <link rel="stylesheet" href="css/layout.css?v=20260310-4" />
+    <link rel="stylesheet" href="css/dashboard.css?v=20260310-4" />
+    <link rel="stylesheet" href="css/upload.css?v=20260310-4" />
+    <link rel="stylesheet" href="css/receipts.css?v=20260310-4" />
+    <link rel="stylesheet" href="css/modal.css?v=20260310-4" />
+    <link rel="stylesheet" href="css/subscription.css?v=20260310-4" />
+    <link rel="stylesheet" href="css/settings.css?v=20260310-4" />
+    <style>
+      @media (max-width: 1024px), (hover: none) and (pointer: coarse) {
+        body:not(.sidebar-open) .sidebar {
+          transform: translateX(-100%) !important;
+        }
+
+        .mobile-menu-btn {
+          display: inline-flex !important;
+          flex-direction: column;
+        }
+
+        .sidebar {
+          position: fixed !important;
+          top: 0 !important;
+          left: 0 !important;
+          bottom: 0 !important;
+          width: min(280px, 82vw) !important;
+          height: 100vh !important;
+          height: 100dvh !important;
+          z-index: 1000 !important;
+          box-shadow: 16px 0 42px rgba(15, 23, 42, 0.28) !important;
+          overflow: hidden !important;
+        }
+
+        .app-layout {
+          display: block !important;
+        }
+
+        main {
+          width: 100% !important;
+          padding-top: calc(76px + env(safe-area-inset-top, 0px)) !important;
+        }
+      }
+    </style>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   </head>
   <body>
@@ -59,6 +93,6 @@
       <main id="app-content"></main>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script type="module" src="js/app.js"></script>
+    <script type="module" src="js/app.js?v=20260310-4"></script>
   </body>
 </html>

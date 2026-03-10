@@ -399,12 +399,13 @@
         flex-direction: column;
         align-items: stretch;
         gap: 8px;
-        transform: translateX(-100%);
+        transform: translate3d(-105%, 0, 0);
         transition: transform 0.24s ease;
         border-right: 1px solid #e5e7eb;
         height: 100vh;
         height: 100dvh;
         overflow: hidden;
+        will-change: transform;
       }
 
       .nav-links a {
@@ -423,7 +424,7 @@
       }
 
       body.menu-open .nav-links {
-        transform: translateX(0);
+        transform: translate3d(0, 0, 0);
       }
 
       body.menu-open .mobile-nav-overlay {
