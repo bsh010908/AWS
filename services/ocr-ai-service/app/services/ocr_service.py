@@ -24,6 +24,11 @@ def fallback_ocr(bucket: str, key: str) -> str:
     return text
 
 
+def korean_ratio(text: str) -> float:
+    korean = sum(1 for c in text if "가" <= c <= "힣")
+    return korean / max(len(text), 1)
+
+
 def extract_text_from_s3(bucket: str, key: str) -> str:
     print("===== TEXTRACT START =====")
     print("S3 Bucket:", bucket)
@@ -59,8 +64,12 @@ def extract_text_from_s3(bucket: str, key: str) -> str:
     print(result)
     print("======================")
 
-    # fallback 조건
-    if len(result) < 15 or "III" in result or "[Web]" in result:
+    # OCR 품질 검사
+    line_count = len(lines)
+    kr_ratio = korean_ratio(result)
+
+    if line_count <= 2 or kr_ratio < 0.05:
+        print("⚠ OCR 품질 낮음 → Tesseract fallback 실행")
         result = fallback_ocr(bucket, key)
 
     return result
