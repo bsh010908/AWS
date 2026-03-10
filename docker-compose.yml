@@ -33,3 +33,5 @@ services:
     container_name: ocr-ai-service
     ports:
       - "8003:8000"
+    env_file:
+      - ./services/ocr-ai-service/.env
