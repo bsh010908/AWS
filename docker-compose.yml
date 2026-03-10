@@ -1,3 +1,5 @@
+version: "3.9"
+
 services:
 
   frontend:
@@ -17,8 +19,6 @@ services:
       - "8001:8000"
     env_file:
       - ./services/auth-service/.env
-    environment:
-      - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}
 
   ledger-service:
     build: ./services/ledger-service
@@ -27,6 +27,8 @@ services:
       - "8002:8000"
     env_file:
       - ./services/ledger-service/.env
+    depends_on:
+      - ocr-ai-service
 
   ocr-ai-service:
     build: ./services/ocr-ai-service
