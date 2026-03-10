@@ -1,5 +1,5 @@
-const AUTH_BASE = "http://43.201.103.180:8001";
-const LEDGER_BASE = "http://43.201.103.180:8002";
+const AUTH_BASE = "http://54.180.56.115:8001";
+const LEDGER_BASE = "http://54.180.56.115:8002";
 
 export async function apiRequest(base, endpoint, options = {}) {
   const token = localStorage.getItem("access_token");
