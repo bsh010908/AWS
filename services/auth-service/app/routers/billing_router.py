@@ -121,10 +121,26 @@ def _safe_retrieve_checkout_session(session_id: str | None):
 
 
 def _extract_id(value):
+    if not value:
+        return None
+
     if isinstance(value, str):
         return value
+
     if isinstance(value, dict):
         return value.get("id")
+
+    # StripeObject 대응
+    try:
+        return value.get("id")
+    except Exception:
+        pass
+
+    try:
+        return getattr(value, "id", None)
+    except Exception:
+        pass
+
     return None
 
 
@@ -207,8 +223,8 @@ def _upsert_subscription_state(
         user.next_billing_at = _to_datetime_from_unix(fallback_period_end)
 
     sub = _safe_retrieve_subscription(sub_id)
-    if sub and sub.get("current_period_end"):
-        user.next_billing_at = _to_datetime_from_unix(sub.get("current_period_end"))
+    if sub and getattr(sub, "current_period_end", None):
+        user.next_billing_at = _to_datetime_from_unix(sub.current_period_end)
 
 
 # ===============================
