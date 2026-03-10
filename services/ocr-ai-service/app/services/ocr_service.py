@@ -4,7 +4,6 @@ textract = boto3.client("textract", region_name="ap-northeast-2")
 
 
 def extract_text_from_s3(bucket: str, key: str) -> str:
-
     print("===== TEXTRACT START =====")
     print("S3 Bucket:", bucket)
     print("S3 Key:", key)
@@ -21,7 +20,6 @@ def extract_text_from_s3(bucket: str, key: str) -> str:
     lines = []
 
     for block in response.get("Blocks", []):
-
         if block.get("BlockType") != "LINE":
             continue
 
@@ -31,12 +29,7 @@ def extract_text_from_s3(bucket: str, key: str) -> str:
         if not text:
             continue
 
-        # 신뢰도 필터
-        if confidence < 80:
-            continue
-
         print(f"OCR LINE ({confidence:.1f}%):", text)
-
         lines.append(text)
 
     result = "\n".join(lines)
