@@ -1,8 +1,22 @@
-import pytesseract
-from PIL import Image
+import boto3
+
+textract = boto3.client("textract", region_name="ap-northeast-2")
 
 
-def extract_text(file_obj):
-    image = Image.open(file_obj)
-    text = pytesseract.image_to_string(image, lang="kor+eng")
-    return text
+def extract_text_from_s3(bucket: str, key: str) -> str:
+    response = textract.detect_document_text(
+        Document={
+            "S3Object": {
+                "Bucket": bucket,
+                "Name": key,
+            }
+        }
+    )
+
+    lines = []
+
+    for block in response.get("Blocks", []):
+        if block.get("BlockType") == "LINE":
+            lines.append(block.get("Text", ""))
+
+    return "\n".join(lines)
