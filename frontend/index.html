@@ -393,6 +393,7 @@
         z-index: 20;
         width: min(280px, 82vw);
         background: #ffffff;
+        opacity: 1;
         box-shadow: 18px 0 42px rgba(15, 23, 42, 0.18);
         padding: 80px 18px 24px;
         flex-direction: column;
@@ -400,10 +401,22 @@
         gap: 8px;
         transform: translateX(-100%);
         transition: transform 0.24s ease;
+        border-right: 1px solid #e5e7eb;
       }
 
       .nav-links a {
         padding: 12px 14px;
+        color: #0f172a;
+        background: #ffffff;
+      }
+
+      .nav-links a:hover {
+        background: #f8fafc;
+      }
+
+      .btn-outline {
+        border-color: #cbd5e1;
+        background: #f8fafc;
       }
 
       body.menu-open .nav-links {

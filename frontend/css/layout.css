@@ -57,6 +57,9 @@ body.sidebar-open {
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
 }
 
 .logo {
@@ -130,7 +133,9 @@ body.mobile-layout .sidebar {
   box-shadow: 16px 0 42px rgba(15, 23, 42, 0.28);
   padding-top: calc(84px + env(safe-area-inset-top, 0px));
   padding-bottom: max(20px, env(safe-area-inset-bottom, 0px));
-  overflow-y: auto;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
 }
 
 body.mobile-layout.sidebar-open .sidebar {
@@ -172,6 +177,9 @@ body.mobile-layout main {
     z-index: 1000;
     box-shadow: 16px 0 42px rgba(15, 23, 42, 0.28);
     padding-top: 84px;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
   }
 
   body.sidebar-open .sidebar {

@@ -207,11 +207,27 @@ async function loadMonthlyChart() {
 
 function normalizeLast12Months(data = []) {
   const now = new Date();
+  const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  const oldestMonthStart = new Date(now.getFullYear(), now.getMonth() - 11, 1);
   const monthMap = new Map();
 
   data.forEach((item) => {
     if (!item || !item.month) return;
-    monthMap.set(String(item.month), Number(item.total) || 0);
+
+    const [yearText, monthText] = String(item.month).split("-");
+    const year = Number(yearText);
+    const month = Number(monthText);
+
+    if (!year || !month) return;
+
+    const itemMonthStart = new Date(year, month - 1, 1);
+
+    if (itemMonthStart < oldestMonthStart || itemMonthStart > currentMonthStart) {
+      return;
+    }
+
+    const normalizedKey = `${year}-${String(month).padStart(2, "0")}`;
+    monthMap.set(normalizedKey, Number(item.total) || 0);
   });
 
   const normalized = [];

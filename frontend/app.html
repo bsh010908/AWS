@@ -16,6 +16,17 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   </head>
   <body>
+    <script>
+      (function () {
+        const ua = navigator.userAgent || "";
+        const mobileUa = /Android|iPhone|iPad|iPod|Mobile|SamsungBrowser|CriOS|FxiOS/i.test(ua);
+        const smallViewport = window.matchMedia("(max-width: 1024px)").matches;
+        const coarsePointer = window.matchMedia("(hover: none) and (pointer: coarse)").matches;
+        if (coarsePointer || (mobileUa && smallViewport)) {
+          document.body.classList.add("mobile-layout");
+        }
+      })();
+    </script>
     <div class="app-layout">
       <button
         id="mobileMenuBtn"
