@@ -610,6 +610,14 @@
     const overlay = document.getElementById("landingNavOverlay");
     const nav = document.getElementById("landingNav");
 
+    function isMobileLayout() {
+      const userAgent = navigator.userAgent || "";
+      const mobileUa = /Android|iPhone|iPad|iPod|Mobile|SamsungBrowser|CriOS|FxiOS/i.test(userAgent);
+      const smallViewport = window.matchMedia("(max-width: 1024px)").matches;
+      const coarsePointer = window.matchMedia("(hover: none) and (pointer: coarse)").matches;
+      return coarsePointer || (mobileUa && smallViewport);
+    }
+
     function setMenuOpen(isOpen) {
       body.classList.toggle("menu-open", isOpen);
       menuBtn.setAttribute("aria-expanded", String(isOpen));
@@ -623,14 +631,14 @@
 
     nav.querySelectorAll("a").forEach((link) => {
       link.addEventListener("click", () => {
-        if (window.innerWidth <= 760) {
+        if (isMobileLayout()) {
           setMenuOpen(false);
         }
       });
     });
 
     window.addEventListener("resize", () => {
-      if (window.innerWidth > 760) {
+      if (!isMobileLayout()) {
         setMenuOpen(false);
       }
     });
