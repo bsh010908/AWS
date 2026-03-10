@@ -10,10 +10,12 @@ textract = boto3.client("textract", region_name="ap-northeast-2")
 def fallback_ocr(bucket: str, key: str) -> str:
     print("⚠ Textract 결과 이상 → Tesseract fallback 실행")
 
-    url = f"https://{bucket}.s3.amazonaws.com/{key}"
+    s3 = boto3.client("s3")
 
-    response = requests.get(url)
-    image = Image.open(io.BytesIO(response.content))
+    obj = s3.get_object(Bucket=bucket, Key=key)
+    image_bytes = obj["Body"].read()
+
+    image = Image.open(io.BytesIO(image_bytes))
 
     text = pytesseract.image_to_string(image, lang="kor+eng")
 
