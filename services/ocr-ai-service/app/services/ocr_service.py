@@ -1,6 +1,27 @@
 import boto3
+import pytesseract
+from PIL import Image
+import requests
+import io
 
 textract = boto3.client("textract", region_name="ap-northeast-2")
+
+
+def fallback_ocr(bucket: str, key: str) -> str:
+    print("⚠ Textract 결과 이상 → Tesseract fallback 실행")
+
+    url = f"https://{bucket}.s3.amazonaws.com/{key}"
+
+    response = requests.get(url)
+    image = Image.open(io.BytesIO(response.content))
+
+    text = pytesseract.image_to_string(image, lang="kor+eng")
+
+    print("===== TESSERACT RESULT =====")
+    print(text)
+    print("============================")
+
+    return text
 
 
 def extract_text_from_s3(bucket: str, key: str) -> str:
@@ -37,5 +58,9 @@ def extract_text_from_s3(bucket: str, key: str) -> str:
     print("===== OCR RESULT =====")
     print(result)
     print("======================")
+
+    # fallback 조건
+    if len(result) < 15 or "III" in result or "[Web]" in result:
+        result = fallback_ocr(bucket, key)
 
     return result
