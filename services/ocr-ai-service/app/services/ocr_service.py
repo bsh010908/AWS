@@ -5,6 +5,10 @@ textract = boto3.client("textract", region_name="ap-northeast-2")
 
 def extract_text_from_s3(bucket: str, key: str) -> str:
 
+    print("===== TEXTRACT START =====")
+    print("S3 Bucket:", bucket)
+    print("S3 Key:", key)
+
     response = textract.detect_document_text(
         Document={
             "S3Object": {
@@ -20,6 +24,13 @@ def extract_text_from_s3(bucket: str, key: str) -> str:
         if block["BlockType"] == "LINE":
             text = block.get("Text", "").strip()
             if text:
+                print("OCR LINE:", text)   # ⭐ 여기
                 lines.append(text)
 
-    return "\n".join(lines)
+    result = "\n".join(lines)
+
+    print("===== OCR RESULT =====")
+    print(result)
+    print("======================")
+
+    return result
