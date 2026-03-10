@@ -207,42 +207,37 @@ async function loadMonthlyChart() {
 
 function normalizeLast12Months(data = []) {
   const now = new Date();
-  const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-  const oldestMonthStart = new Date(now.getFullYear(), now.getMonth() - 11, 1);
+  const targetMonths = [];
   const monthMap = new Map();
-
-  data.forEach((item) => {
-    if (!item || !item.month) return;
-
-    const [yearText, monthText] = String(item.month).split("-");
-    const year = Number(yearText);
-    const month = Number(monthText);
-
-    if (!year || !month) return;
-
-    const itemMonthStart = new Date(year, month - 1, 1);
-
-    if (itemMonthStart < oldestMonthStart || itemMonthStart > currentMonthStart) {
-      return;
-    }
-
-    const normalizedKey = `${year}-${String(month).padStart(2, "0")}`;
-    monthMap.set(normalizedKey, Number(item.total) || 0);
-  });
-
-  const normalized = [];
 
   for (let offset = 11; offset >= 0; offset -= 1) {
     const date = new Date(now.getFullYear(), now.getMonth() - offset, 1);
     const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
-
-    normalized.push({
-      month: monthKey,
-      total: monthMap.get(monthKey) ?? 0,
-    });
+    targetMonths.push(monthKey);
+    monthMap.set(monthKey, 0);
   }
 
-  return normalized;
+  data.forEach((item) => {
+    if (!item || !item.month) return;
+
+    const match = String(item.month).match(/^(\d{4})-(\d{1,2})/);
+    if (!match) return;
+
+    const year = Number(match[1]);
+    const month = Number(match[2]);
+
+    if (!year || !month) return;
+
+    const normalizedKey = `${year}-${String(month).padStart(2, "0")}`;
+    if (!monthMap.has(normalizedKey)) return;
+
+    monthMap.set(normalizedKey, monthMap.get(normalizedKey) + (Number(item.total) || 0));
+  });
+
+  return targetMonths.map((monthKey) => ({
+    month: monthKey,
+    total: monthMap.get(monthKey) ?? 0,
+  }));
 }
 
 function renderMonthlyChart(data) {
@@ -255,15 +250,18 @@ function renderMonthlyChart(data) {
     type: "bar",
 
     data: {
-      labels: normalizedData.map((d) => d.month.slice(5)),
+      labels: normalizedData.map((d) => {
+        const [year, month] = d.month.split("-");
+        return `${year.slice(2)}.${month}`;
+      }),
       datasets: [
         {
           data: normalizedData.map((d) => d.total),
           backgroundColor: "#6366f1",
           borderRadius: 8,
-          maxBarThickness: 22,
-          categoryPercentage: 0.72,
-          barPercentage: 0.82,
+          maxBarThickness: 14,
+          categoryPercentage: 0.9,
+          barPercentage: 0.58,
         },
       ],
     },
@@ -287,7 +285,7 @@ function renderMonthlyChart(data) {
             maxRotation: 0,
             minRotation: 0,
             font: {
-              size: window.innerWidth <= 520 ? 10 : 11,
+              size: window.innerWidth <= 520 ? 9 : 10,
             },
           },
         },

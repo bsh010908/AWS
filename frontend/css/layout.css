@@ -6,9 +6,10 @@ body.sidebar-open {
 
 .app-layout {
   display: flex;
-  min-height: 100vh;
-  min-height: 100dvh;
+  height: 100vh;
+  height: 100dvh;
   background: #f8fafc;
+  overflow: hidden;
 }
 
 .mobile-menu-btn {
@@ -108,8 +109,11 @@ body.sidebar-open {
 main {
   flex: 1;
   min-width: 0;
+  height: 100vh;
+  height: 100dvh;
   padding: 40px;
   overflow-y: auto;
+  overflow-x: hidden;
 }
 
 body.mobile-layout .app-layout {
@@ -149,6 +153,8 @@ body.mobile-layout.sidebar-open .sidebar-overlay {
 
 body.mobile-layout main {
   width: 100%;
+  height: 100vh;
+  height: 100dvh;
   padding:
     calc(76px + env(safe-area-inset-top, 0px))
     max(16px, env(safe-area-inset-right, 0px))
@@ -159,6 +165,8 @@ body.mobile-layout main {
 @media (max-width: 900px), (hover: none) and (pointer: coarse) {
   .app-layout {
     display: block;
+    height: 100vh;
+    height: 100dvh;
   }
 
   .mobile-menu-btn {
@@ -193,6 +201,8 @@ body.mobile-layout main {
 
   main {
     width: 100%;
+    height: 100vh;
+    height: 100dvh;
     padding: 76px 16px 24px;
   }
 }
