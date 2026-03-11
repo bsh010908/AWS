@@ -1,6 +1,7 @@
 const API_BASE = "https://y1g931km59.execute-api.ap-northeast-2.amazonaws.com";
 
-const AUTH_BASE = API_BASE;
+const AUTH_BASE = `${API_BASE}/auth`;
+const BILLING_BASE = `${API_BASE}/billing`;
 const LEDGER_BASE = API_BASE;
 
 export async function apiRequest(base, endpoint, options = {}) {
