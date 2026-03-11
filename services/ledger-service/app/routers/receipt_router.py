@@ -8,7 +8,7 @@ from app.services.receipt_service import save_receipt
 from app.services.ocr_usage_service import check_ocr_limit, increment_ocr_usage
 from app.services.s3_service import upload_receipt_to_s3   
 
-router = APIRouter(prefix="/receipts", tags=["Receipts"])
+router = APIRouter(prefix="/ledger/receipts", tags=["Receipts"])
 
 OCR_SERVICE_URL = "http://ocr-ai-service:8000/ocr/classify"
 S3_BUCKET = "aws-ledger-receipts"

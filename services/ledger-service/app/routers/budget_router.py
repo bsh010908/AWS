@@ -7,7 +7,7 @@ from app.schemas.budget_schema import BudgetCreate, BudgetResponse
 from app.services.budget_service import set_budget
 from app.models.budget import Budget
 
-router = APIRouter(prefix="/budget", tags=["budget"])
+router = APIRouter(prefix="/ledger/budget", tags=["budget"])
 
 
 # ===============================

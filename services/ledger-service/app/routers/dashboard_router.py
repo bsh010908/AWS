@@ -15,7 +15,7 @@ from app.services.dashboard_service import (
 from app.core.security import get_current_user
 
 
-router = APIRouter(prefix="/dashboard", tags=["Dashboard"])
+router = APIRouter(prefix="/ledger/dashboard", tags=["Dashboard"])
 
 
 # ===============================

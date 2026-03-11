@@ -17,7 +17,7 @@ from app.services.transaction_service import create_transaction
 from app.models.transaction import Transaction
 
 
-router = APIRouter(prefix="/transactions", tags=["transactions"])
+router = APIRouter(prefix="/ledger/transactions", tags=["transactions"])
 
 
 # ===============================
