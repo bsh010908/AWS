@@ -21,18 +21,18 @@ class OCRClassifyResponse(BaseModel):
 @router.post("/classify", response_model=OCRClassifyResponse)
 async def classify_from_s3(payload: OCRClassifyRequest):
     try:
-        print("📥 OCR REQUEST:", payload)
+        print("OCR REQUEST:", payload)
 
         # Textract OCR
         ocr_text = extract_text_from_s3(payload.s3_bucket, payload.s3_key)
-        print("📄 OCR TEXT:", ocr_text[:200])
+        print("OCR TEXT:", ocr_text[:200])
 
         if not ocr_text:
             raise Exception("OCR text is empty")
 
         # AI 분류
         classification = classify_receipt(ocr_text)
-        print("🤖 AI RESULT:", classification)
+        print(" AI RESULT:", classification)
 
         return {
             "ocr_text": ocr_text,
@@ -40,7 +40,7 @@ async def classify_from_s3(payload: OCRClassifyRequest):
         }
 
     except Exception as exc:
-        print("🔥 OCR SERVICE ERROR")
+        print("OCR SERVICE ERROR")
         traceback.print_exc()
 
         raise HTTPException(

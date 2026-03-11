@@ -9,7 +9,7 @@ const routes = {
   },
   "/receipts": {
     render: renderReceipts,
-    after: afterRenderReceipts, // ✅ receipts도 after 추가
+    after: afterRenderReceipts,
   },
   "/upload": {
     render: renderUpload,

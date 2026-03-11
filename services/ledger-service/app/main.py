@@ -81,7 +81,8 @@ app.add_middleware(
     allow_origins=[
         "http://127.0.0.1:5500",
         "http://localhost:5500",
-        "http://54.180.56.115"
+        "http://54.180.56.115",
+        "https://y1g931km59.execute-api.ap-northeast-2.amazonaws.com"
 
     ],
     allow_credentials=True,

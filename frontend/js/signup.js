@@ -14,7 +14,7 @@ document
     }
 
     try {
-      const res = await fetch("http://54.180.56.115:8001/signup", {
+      const res = await fetch("https://y1g931km59.execute-api.ap-northeast-2.amazonaws.com/auth/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -1,5 +1,7 @@
-const AUTH_BASE = "http://54.180.56.115:8001";
-const LEDGER_BASE = "http://54.180.56.115:8002";
+const API_BASE = "https://y1g931km59.execute-api.ap-northeast-2.amazonaws.com";
+
+const AUTH_BASE = API_BASE;
+const LEDGER_BASE = API_BASE;
 
 export async function apiRequest(base, endpoint, options = {}) {
   const token = localStorage.getItem("access_token");
@@ -18,7 +20,6 @@ export async function apiRequest(base, endpoint, options = {}) {
     headers
   });
 
-  // 🔐 인증 만료 처리
   if (response.status === 401) {
     localStorage.removeItem("access_token");
     window.location.href = "index.html";

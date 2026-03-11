@@ -589,26 +589,4 @@ paths:
                       date: { type: string, nullable: true }
 ```
 
----
 
-## 6. 테스트용 예시
-
-### 6.1 로그인
-```bash
-curl -X POST http://localhost:8001/login \
-  -H "Content-Type: application/json" \
-  -d '{"username":"testuser","password":"1234"}'
-```
-
-### 6.2 거래 조회
-```bash
-curl "http://localhost:8002/transactions?year=2026&month=3&page=0&size=10" \
-  -H "Authorization: Bearer <ACCESS_TOKEN>"
-```
-
-### 6.3 영수증 업로드
-```bash
-curl -X POST http://localhost:8002/receipts/upload \
-  -H "Authorization: Bearer <ACCESS_TOKEN>" \
-  -F "file=@receipt.jpg"
-```
