@@ -66,7 +66,8 @@ body {
   flex-shrink: 0;
   height: 100vh;
   height: 100dvh;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .logo {
@@ -101,11 +102,9 @@ body {
 }
 
 .logout-btn {
-  position: absolute;
-  left: 20px;
-  right: 20px;
-  bottom: 20px;
-  margin-top: 0;
+  position: static;
+  width: 100%;
+  margin-top: auto;
   padding: 10px;
   background: #ffffff;
   border: 1px solid #e5e7eb;
@@ -155,7 +154,8 @@ body.mobile-layout .sidebar {
   padding-bottom: max(20px, env(safe-area-inset-bottom, 0px));
   height: 100vh;
   height: 100dvh;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 body.mobile-layout .sidebar nav {
@@ -163,9 +163,10 @@ body.mobile-layout .sidebar nav {
 }
 
 body.mobile-layout .logout-btn {
-  left: 16px;
-  right: 16px;
-  bottom: max(16px, env(safe-area-inset-bottom, 0px));
+  width: calc(100% - 32px);
+  margin-left: auto;
+  margin-right: auto;
+  margin-bottom: max(16px, env(safe-area-inset-bottom, 0px));
 }
 
 body.mobile-layout.sidebar-open .sidebar {
@@ -214,7 +215,8 @@ body.mobile-layout main {
     padding-top: 84px;
     height: 100vh;
     height: 100dvh;
-    overflow: hidden;
+    overflow-y: auto;
+    overflow-x: hidden;
   }
 
   .sidebar nav {
@@ -222,9 +224,10 @@ body.mobile-layout main {
   }
 
   .logout-btn {
-    left: 16px;
-    right: 16px;
-    bottom: 16px;
+    width: calc(100% - 32px);
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 16px;
   }
 
   body.sidebar-open .sidebar {

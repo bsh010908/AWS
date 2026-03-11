@@ -4,70 +4,38 @@ let currentYear;
 let currentMonth;
 let currentPage = 0;
 let totalPages = 0;
-let currentSourceType = null; // null = 전체, "OCR" = AI만
+let currentSourceType = null;
 let currentTab = "MONTH";
 const pageSize = 10;
 
-/* =====================================================
-   기본 렌더
-===================================================== */
 export async function renderReceipts() {
   return `
     <section class="page receipts-page">
-
       <div class="page-header">
-
-        <!-- TITLE -->
         <div class="page-title">
           <h2>거래내역</h2>
-          <p class="page-sub">
-            수기 입력 · 수정 · 삭제 · 카테고리 관리
-          </p>
+          <p class="page-sub">월별 내역과 최근 거래를 한 화면에서 확인할 수 있습니다.</p>
         </div>
 
-        <!-- HEADER BOTTOM -->
         <div class="page-header-bottom">
-
-          <!-- TABS LEFT -->
           <div class="tabs">
-            <button class="tab-btn active" data-tab="MONTH">
-              거래내역
-            </button>
-
-            <button class="tab-btn" data-tab="RECENT">
-              최근 추가
-            </button>
+            <button class="tab-btn active" data-tab="MONTH">월별 내역</button>
+            <button class="tab-btn" data-tab="RECENT">최근 거래</button>
           </div>
 
-          <!-- ACTIONS RIGHT -->
           <div class="page-actions">
-
             <div class="month-picker-wrap">
-              <input 
-                type="month" 
-                id="monthPicker" 
-                class="month-picker"
-              />
+              <input type="month" id="monthPicker" class="month-picker" />
             </div>
 
-            <button id="addTxBtn" class="primary-btn">
-              + 거래 추가
-            </button>
-
-            <button id="aiOnlyBtn" class="secondary-btn">
-              AI만 보기
-            </button>
-
+            <button id="addTxBtn" class="primary-btn">+ 거래 추가</button>
+            <button id="aiOnlyBtn" class="secondary-btn">AI 인식만</button>
           </div>
-
         </div>
-
       </div>
 
       <div id="transactionList" class="tx-grid"></div>
-
       <div id="modalRoot"></div>
-
     </section>
   `;
 }
@@ -76,73 +44,46 @@ export async function afterRenderReceipts() {
   const now = new Date();
   currentYear = now.getFullYear();
   currentMonth = now.getMonth() + 1;
+  currentPage = 0;
+  currentTab = "MONTH";
+  currentSourceType = null;
 
   const monthInput = document.getElementById("monthPicker");
-  monthInput.value = `${currentYear}-${String(currentMonth).padStart(2, "0")}`;
-
-  /* =========================
-     탭 이벤트
-  ========================= */
+  if (monthInput) {
+    monthInput.value = `${currentYear}-${String(currentMonth).padStart(2, "0")}`;
+    monthInput.onchange = async () => {
+      const [year, month] = monthInput.value.split("-");
+      currentYear = Number(year);
+      currentMonth = Number(month);
+      currentPage = 0;
+      await loadTransactions();
+    };
+  }
 
   document.querySelectorAll(".tab-btn").forEach((btn) => {
     btn.onclick = async () => {
-
-      document.querySelectorAll(".tab-btn")
-        .forEach(b => b.classList.remove("active"));
-
+      document.querySelectorAll(".tab-btn").forEach((item) => item.classList.remove("active"));
       btn.classList.add("active");
-
       currentTab = btn.dataset.tab;
-
       currentPage = 0;
-
       await loadTransactions();
     };
   });
 
-  /* =========================
-     거래 추가
-  ========================= */
+  const addTxBtn = document.getElementById("addTxBtn");
+  if (addTxBtn) {
+    addTxBtn.onclick = openCreateTxModal;
+  }
 
-  document.getElementById("addTxBtn").onclick = openCreateTxModal;
-
-  /* =========================
-     AI 필터
-  ========================= */
-
-  document.getElementById("aiOnlyBtn").onclick = async () => {
-
-    if (currentSourceType === "OCR") {
-      currentSourceType = null;
-    } else {
-      currentSourceType = "OCR";
-    }
-
-    syncAiOnlyButtonState();
-    currentPage = 0;
-
-    await loadTransactions();
-  };
-
-  /* =========================
-     월 변경
-  ========================= */
-
-  monthInput.onchange = async () => {
-
-    const [y, m] = monthInput.value.split("-");
-
-    currentYear = Number(y);
-    currentMonth = Number(m);
-
-    currentPage = 0;
-
-    await loadTransactions();
-  };
-
-  /* =========================
-     최초 로딩
-  ========================= */
+  const aiOnlyBtn = document.getElementById("aiOnlyBtn");
+  if (aiOnlyBtn) {
+    aiOnlyBtn.onclick = async () => {
+      currentSourceType = currentSourceType === "OCR" ? null : "OCR";
+      currentPage = 0;
+      syncAiOnlyButtonState();
+      await loadTransactions();
+    };
+  }
 
   await loadTransactions();
 }
@@ -152,89 +93,60 @@ function syncAiOnlyButtonState() {
   if (!aiOnlyBtn) return;
   aiOnlyBtn.classList.toggle("active", currentSourceType === "OCR");
 }
-/* =====================================================
-   리스트 로딩
-===================================================== */
+
 async function loadTransactions() {
   syncAiOnlyButtonState();
 
   const monthWrap = document.querySelector(".month-picker-wrap");
+  if (monthWrap) {
+    monthWrap.classList.toggle("hidden", currentTab === "RECENT");
+  }
 
   let data;
 
-  /* =========================
-     최근 추가 탭
-  ========================= */
-
   if (currentTab === "RECENT") {
-
-    monthWrap.classList.add("hidden");
-
-    const list = await apiRequest(
-      LEDGER_BASE,
-      "/transactions/recent"
-    );
-
+    const list = await apiRequest(LEDGER_BASE, "/transactions/recent");
     data = {
-      content: list,
+      content: Array.isArray(list) ? list : [],
       total_pages: 1,
-      page: 0
+      page: 0,
     };
-
-  } 
-
-  /* =========================
-     월 거래내역 탭
-  ========================= */
-
-  else {
-
-    monthWrap.classList.remove("hidden");
-
-    const sourceParam = currentSourceType
-      ? `&source_type=${currentSourceType}`
-      : "";
-
+  } else {
+    const sourceParam = currentSourceType ? `&source_type=${currentSourceType}` : "";
     data = await apiRequest(
       LEDGER_BASE,
-      `/transactions?year=${currentYear}&month=${currentMonth}&page=${currentPage}&size=${pageSize}${sourceParam}`
+      `/transactions?year=${currentYear}&month=${currentMonth}&page=${currentPage}&size=${pageSize}${sourceParam}`,
     );
-
   }
 
-  console.log("응답:", data);
+  totalPages = Number(data?.total_pages ?? 0);
+  currentPage = Number(data?.page ?? 0);
 
-  totalPages = data.total_pages ?? 0;
-  currentPage = data.page ?? 0;
-
-  renderList(data.content ?? []);
+  renderList(data?.content ?? []);
   renderPagination();
 }
 
-function getConfidenceBadge(conf) {
-  if (conf == null) return "";
+function getConfidenceBadge(confidence) {
+  if (confidence == null) return "";
 
-  const percent = Math.round(conf * 100);
-
-  let color = "gray";
-  if (percent >= 80) color = "green";
-  else if (percent >= 50) color = "orange";
-  else color = "red";
+  const percent = Math.round(Number(confidence) * 100);
+  const color = percent >= 80 ? "green" : percent >= 50 ? "orange" : "red";
 
   return `
-  <span 
-    class="ai-badge ${color}" 
-    title="AI 자동 분류 신뢰도">
-    AI ${percent}%
-  </span>
-`;
+    <span class="ai-badge ${color}" title="AI 인식 신뢰도">
+      AI ${percent}%
+    </span>
+  `;
 }
+
 function renderList(list) {
   const container = document.getElementById("transactionList");
+  if (!container) return;
+
   container.innerHTML = "";
 
-  if (!list?.length) {
-    container.innerHTML = `<div class="empty-state">거래 내역이 없습니다</div>`;
+  if (!list.length) {
+    container.innerHTML = `<div class="empty-state">표시할 거래 내역이 없습니다.</div>`;
     return;
   }
 
@@ -242,30 +154,22 @@ function renderList(list) {
     const card = document.createElement("div");
     card.className = "tx-card";
 
-    const dateText = tx.occurred_at
-      ? new Date(tx.occurred_at).toLocaleDateString()
-      : "";
+    const dateText = tx.occurred_at ? new Date(tx.occurred_at).toLocaleDateString() : "";
+    const category = tx.category ?? "미분류";
+    const merchant = tx.merchant_name ?? "";
 
     card.innerHTML = `
       <div class="tx-card-inner">
-
         <div class="tx-left">
-          <div class="tx-category">${tx.category ?? "미분류"}</div>
-          <div class="tx-merchant">${tx.merchant_name ?? ""}</div>
+          <div class="tx-category">${category}</div>
+          <div class="tx-merchant">${merchant}</div>
         </div>
 
         <div class="tx-right">
-          <div class="tx-amount">
-            ${Number(tx.amount).toLocaleString()} 원
-          </div>
-
+          <div class="tx-amount">${Number(tx.amount || 0).toLocaleString()}원</div>
           ${getConfidenceBadge(tx.ai_confidence)}
-
-          <div class="tx-date">
-            ${dateText}
-          </div>
+          <div class="tx-date">${dateText}</div>
         </div>
-
       </div>
 
       <div class="tx-actions">
@@ -275,7 +179,7 @@ function renderList(list) {
     `;
 
     card.querySelector(".delete-btn").onclick = async () => {
-      if (!confirm("삭제하시겠습니까?")) return;
+      if (!window.confirm("이 거래를 삭제하시겠습니까?")) return;
 
       await apiRequest(LEDGER_BASE, `/transactions/${tx.id}`, {
         method: "DELETE",
@@ -285,32 +189,28 @@ function renderList(list) {
     };
 
     card.querySelector(".edit-btn").onclick = () => openEditModal(tx);
-
     container.appendChild(card);
   });
 }
 
 function renderPagination() {
-  // 기존 pagination 제거
   document.querySelector(".pagination")?.remove();
 
-  if (totalPages === 0) return;
+  if (totalPages <= 1 || currentTab === "RECENT") return;
 
   const pagination = document.createElement("div");
   pagination.className = "pagination";
 
-  const maxVisible = 5; // 한 번에 보여줄 페이지 수
+  const maxVisible = 5;
   let start = Math.max(0, currentPage - 2);
   let end = Math.min(totalPages - 1, start + maxVisible - 1);
 
-  // 끝쪽 보정
   if (end - start < maxVisible - 1) {
     start = Math.max(0, end - maxVisible + 1);
   }
 
   let html = "";
 
-  // 앞쪽 ... 처리
   if (start > 0) {
     html += `<button class="page-btn" data-page="0">1</button>`;
     if (start > 1) {
@@ -318,29 +218,22 @@ function renderPagination() {
     }
   }
 
-  // 중앙 숫자들
-  for (let i = start; i <= end; i++) {
+  for (let index = start; index <= end; index += 1) {
     html += `
-      <button 
-        class="page-btn ${i === currentPage ? "active" : ""}"
-        data-page="${i}">
-        ${i + 1}
+      <button class="page-btn ${index === currentPage ? "active" : ""}" data-page="${index}">
+        ${index + 1}
       </button>
     `;
   }
 
-  // 뒤쪽 ... 처리
   if (end < totalPages - 1) {
     if (end < totalPages - 2) {
       html += `<span class="dots">...</span>`;
     }
-    html += `<button class="page-btn" data-page="${totalPages - 1}">
-      ${totalPages}
-    </button>`;
+    html += `<button class="page-btn" data-page="${totalPages - 1}">${totalPages}</button>`;
   }
 
   pagination.innerHTML = html;
-
   pagination.querySelectorAll(".page-btn").forEach((btn) => {
     btn.onclick = async () => {
       currentPage = Number(btn.dataset.page);
@@ -348,42 +241,36 @@ function renderPagination() {
     };
   });
 
-  const list = document.getElementById("transactionList");
-  list.insertAdjacentElement("afterend", pagination);
+  document.getElementById("transactionList")?.insertAdjacentElement("afterend", pagination);
 }
 
-/* =====================================================
-   공용 모달 헬퍼
-===================================================== */
 function openModal(html, { onMount } = {}) {
   const modalRoot = document.getElementById("modalRoot");
+  if (!modalRoot) return { closeModal: () => {} };
+
   modalRoot.innerHTML = html;
 
-  const overlay = document.querySelector(".modal-overlay");
-  const closeBtn = document.getElementById("closeModal");
-  const closeBtn2 = document.getElementById("closeBtn2");
-
-  function closeModal() {
+  const closeModal = () => {
     modalRoot.innerHTML = "";
     document.removeEventListener("keydown", escHandler);
-  }
+  };
 
-  function escHandler(e) {
-    if (e.key === "Escape") closeModal();
-  }
+  const escHandler = (event) => {
+    if (event.key === "Escape") {
+      closeModal();
+    }
+  };
 
   document.addEventListener("keydown", escHandler);
 
-  if (closeBtn) closeBtn.onclick = closeModal;
-  if (closeBtn2) closeBtn2.onclick = closeModal;
+  document.getElementById("closeModal")?.addEventListener("click", closeModal);
+  document.getElementById("closeBtn2")?.addEventListener("click", closeModal);
 
-  if (overlay) {
-    overlay.onclick = (e) => {
-      if (e.target.classList.contains("modal-overlay")) {
-        closeModal();
-      }
-    };
-  }
+  document.querySelector(".modal-overlay")?.addEventListener("click", (event) => {
+    if (event.target.classList.contains("modal-overlay")) {
+      closeModal();
+    }
+  });
 
   if (typeof onMount === "function") {
     onMount({ closeModal });
@@ -392,12 +279,9 @@ function openModal(html, { onMount } = {}) {
   return { closeModal };
 }
 
-/* =====================================================
-   유틸
-===================================================== */
 async function fetchCategoriesSafe() {
-  const res = await apiRequest(LEDGER_BASE, "/categories");
-  return Array.isArray(res) ? res : (res?.data ?? []);
+  const response = await apiRequest(LEDGER_BASE, "/categories");
+  return Array.isArray(response) ? response : (response?.data ?? []);
 }
 
 function isoFromDateInput(dateStr) {
@@ -405,16 +289,15 @@ function isoFromDateInput(dateStr) {
 }
 
 function renderCategoryOptions(categories, selectedName) {
-  if (!categories.length)
-    return `<option value="">(카테고리가 없습니다)</option>`;
+  if (!categories.length) {
+    return `<option value="">카테고리가 없습니다</option>`;
+  }
 
   return categories
     .map(
-      (c) => `
-        <option value="${c.category_id}" ${
-          selectedName === c.name ? "selected" : ""
-        }>
-          ${c.name}
+      (category) => `
+        <option value="${category.category_id}" ${selectedName === category.name ? "selected" : ""}>
+          ${category.name}
         </option>
       `,
     )
@@ -423,43 +306,42 @@ function renderCategoryOptions(categories, selectedName) {
 
 function validateTx({ amount, categoryValue, dateValue }) {
   if (!categoryValue) {
-    alert("카테고리를 선택하세요");
+    alert("카테고리를 선택해 주세요.");
     return false;
   }
+
   if (!Number.isFinite(amount) || amount <= 0) {
-    alert("금액을 올바르게 입력하세요");
+    alert("금액은 0보다 커야 합니다.");
     return false;
   }
+
   if (!dateValue) {
-    alert("날짜를 선택하세요");
+    alert("날짜를 선택해 주세요.");
     return false;
   }
+
   return true;
 }
 
-/* =====================================================
-   카테고리 인라인 추가
-===================================================== */
 function renderInlineAddCategory() {
   return `
     <div class="inline-add">
       <input id="newCategoryName" type="text" placeholder="새 카테고리 이름" />
       <button id="createCategoryBtn" class="chip-btn">추가</button>
     </div>
-    <div class="inline-hint">
-      기본 카테고리와 이름이 겹치면 추가되지 않습니다.
-    </div>
+    <div class="inline-hint">새 카테고리를 만들면 바로 목록에 반영됩니다.</div>
   `;
 }
 
 async function bindInlineAddCategory({ afterCreated }) {
   const input = document.getElementById("newCategoryName");
   const btn = document.getElementById("createCategoryBtn");
+  if (!input || !btn) return;
 
   btn.onclick = async () => {
     const name = input.value.trim();
     if (!name) {
-      alert("카테고리 이름을 입력하세요");
+      alert("카테고리 이름을 입력해 주세요.");
       return;
     }
 
@@ -470,16 +352,15 @@ async function bindInlineAddCategory({ afterCreated }) {
       });
 
       input.value = "";
-      if (afterCreated) await afterCreated();
-    } catch (e) {
-      alert(e?.message || "카테고리 추가 실패");
+      if (afterCreated) {
+        await afterCreated();
+      }
+    } catch (error) {
+      alert(error?.message || "카테고리 추가에 실패했습니다.");
     }
   };
 }
 
-/* =====================================================
-   거래 수정 모달
-===================================================== */
 async function openEditModal(tx) {
   const categories = await fetchCategoriesSafe();
 
@@ -488,25 +369,28 @@ async function openEditModal(tx) {
       <div class="modal">
         <div class="modal-header">
           <h3>거래 수정</h3>
-          <button id="closeModal" class="close-btn">×</button>
+          <button id="closeModal" class="close-btn">✕</button>
         </div>
 
         <div class="modal-body">
           <div class="form-group">
             <label>금액</label>
-            <input id="editAmount" type="number"
-              value="${Number(tx.amount) || 0}" />
+            <input id="editAmount" type="number" value="${Number(tx.amount) || 0}" />
           </div>
+
           <div class="form-group">
-  <label>상호명</label>
-<input id="editMerchant" type="text"
-  value="${tx.merchant_name ?? ""}" placeholder="예) 스타벅스 / CU / 버스"/>
-</div>
+            <label>가맹점</label>
+            <input
+              id="editMerchant"
+              type="text"
+              value="${tx.merchant_name ?? ""}"
+              placeholder="예: 스타벅스 / CU / 버스"
+            />
+          </div>
 
           <div class="form-group">
             <label>날짜</label>
-            <input id="editDate" type="date"
-              value="${tx.occurred_at?.slice(0, 10) ?? ""}" />
+            <input id="editDate" type="date" value="${tx.occurred_at?.slice(0, 10) ?? ""}" />
           </div>
 
           <div class="form-group">
@@ -514,15 +398,12 @@ async function openEditModal(tx) {
             <select id="editCategory">
               ${renderCategoryOptions(categories, tx.category)}
             </select>
-            <div class="inline-area">
-              ${renderInlineAddCategory()}
-            </div>
+            <div class="inline-area">${renderInlineAddCategory()}</div>
           </div>
 
           <div class="form-group">
             <label>메모</label>
-            <input id="editMemo" type="text"
-              value="${tx.memo ?? ""}" />
+            <input id="editMemo" type="text" value="${tx.memo ?? ""}" />
           </div>
         </div>
 
@@ -540,7 +421,9 @@ async function openEditModal(tx) {
         afterCreated: async () => {
           const updated = await fetchCategoriesSafe();
           const select = document.getElementById("editCategory");
-          select.innerHTML = renderCategoryOptions(updated);
+          if (select) {
+            select.innerHTML = renderCategoryOptions(updated, tx.category);
+          }
         },
       });
 
@@ -571,9 +454,6 @@ async function openEditModal(tx) {
   });
 }
 
-/* =====================================================
-   거래 생성 모달
-===================================================== */
 async function openCreateTxModal() {
   const categories = await fetchCategoriesSafe();
   const today = new Date().toISOString().slice(0, 10);
@@ -583,25 +463,23 @@ async function openCreateTxModal() {
       <div class="modal">
         <div class="modal-header">
           <h3>거래 추가</h3>
-          <button id="closeModal" class="close-btn">×</button>
+          <button id="closeModal" class="close-btn">✕</button>
         </div>
 
         <div class="modal-body">
           <div class="form-group">
             <label>금액</label>
-            <input id="createAmount" type="number"
-              placeholder="예) 12000" />
+            <input id="createAmount" type="number" placeholder="예: 12000" />
           </div>
+
           <div class="form-group">
-  <label>상호명</label>
-  <input id="createMerchant" type="text"
-  placeholder="예) 스타벅스 / CU / 버스" />
-</div>
+            <label>가맹점</label>
+            <input id="createMerchant" type="text" placeholder="예: 스타벅스 / CU / 버스" />
+          </div>
 
           <div class="form-group">
             <label>날짜</label>
-            <input id="createDate" type="date"
-              value="${today}" />
+            <input id="createDate" type="date" value="${today}" />
           </div>
 
           <div class="form-group">
@@ -609,15 +487,12 @@ async function openCreateTxModal() {
             <select id="createCategory">
               ${renderCategoryOptions(categories)}
             </select>
-            <div class="inline-area">
-              ${renderInlineAddCategory()}
-            </div>
+            <div class="inline-area">${renderInlineAddCategory()}</div>
           </div>
 
           <div class="form-group">
             <label>메모</label>
-            <input id="createMemo" type="text"
-              placeholder="예) 점심 / 버스 / 편의점" />
+            <input id="createMemo" type="text" placeholder="선택 입력" />
           </div>
         </div>
 
@@ -635,7 +510,9 @@ async function openCreateTxModal() {
         afterCreated: async () => {
           const updated = await fetchCategoriesSafe();
           const select = document.getElementById("createCategory");
-          select.innerHTML = renderCategoryOptions(updated);
+          if (select) {
+            select.innerHTML = renderCategoryOptions(updated);
+          }
         },
       });
 
@@ -643,28 +520,19 @@ async function openCreateTxModal() {
         const amount = Number(document.getElementById("createAmount").value);
         const memo = document.getElementById("createMemo").value;
         const categorySelect = document.getElementById("createCategory");
-        const categoryName =
-          categorySelect.options[categorySelect.selectedIndex].text;
         const dateValue = document.getElementById("createDate").value;
         const merchant = document.getElementById("createMerchant").value;
 
-        if (
-          !validateTx({
-            merchant_name: merchant || null,
-            amount,
-            categoryValue: categorySelect.value,
-            dateValue,
-          })
-        )
-          return;
+        if (!validateTx({ amount, categoryValue: categorySelect.value, dateValue })) return;
 
         await apiRequest(LEDGER_BASE, "/transactions", {
           method: "POST",
           body: JSON.stringify({
             amount,
             memo: memo || "",
-            category: categoryName, // 🔥 여기
-            occurred_at: new Date(dateValue).toISOString(),
+            merchant_name: merchant || null,
+            category: categorySelect.options[categorySelect.selectedIndex].text,
+            occurred_at: isoFromDateInput(dateValue),
           }),
         });
 
