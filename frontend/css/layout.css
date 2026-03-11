@@ -6,10 +6,10 @@ body.sidebar-open {
 
 .app-layout {
   display: flex;
-  height: 100vh;
-  height: 100dvh;
+  min-height: 100vh;
+  min-height: 100dvh;
   background: #f8fafc;
-  overflow: hidden;
+  overflow: visible;
 }
 
 html,
@@ -64,10 +64,11 @@ body {
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
-  height: 100vh;
-  height: 100dvh;
+  min-height: 100vh;
+  min-height: 100dvh;
   overflow-y: auto;
   overflow-x: hidden;
+  padding-bottom: 96px;
 }
 
 .logo {
@@ -79,10 +80,8 @@ body {
 .sidebar nav {
   display: grid;
   gap: 10px;
-  flex: 1;
   align-content: start;
-  min-height: 0;
-  padding-bottom: 72px;
+  padding-bottom: 0;
 }
 
 .nav-link {
@@ -104,7 +103,8 @@ body {
 .logout-btn {
   position: static;
   width: 100%;
-  margin-top: auto;
+  margin-top: 16px;
+  margin-bottom: 0;
   padding: 10px;
   background: #ffffff;
   border: 1px solid #e5e7eb;
@@ -123,8 +123,8 @@ body {
 main {
   flex: 1;
   min-width: 0;
-  height: 100vh;
-  height: 100dvh;
+  min-height: 100vh;
+  min-height: 100dvh;
   padding: 40px;
   overflow-y: auto;
   overflow-x: hidden;
@@ -156,17 +156,19 @@ body.mobile-layout .sidebar {
   height: 100dvh;
   overflow-y: auto;
   overflow-x: hidden;
+  padding-bottom: max(96px, calc(84px + env(safe-area-inset-bottom, 0px)));
 }
 
 body.mobile-layout .sidebar nav {
-  padding-bottom: 76px;
+  padding-bottom: 0;
 }
 
 body.mobile-layout .logout-btn {
   width: calc(100% - 32px);
   margin-left: auto;
   margin-right: auto;
-  margin-bottom: max(16px, env(safe-area-inset-bottom, 0px));
+  margin-top: 16px;
+  margin-bottom: 0;
 }
 
 body.mobile-layout.sidebar-open .sidebar {
@@ -217,17 +219,19 @@ body.mobile-layout main {
     height: 100dvh;
     overflow-y: auto;
     overflow-x: hidden;
+    padding-bottom: 96px;
   }
 
   .sidebar nav {
-    padding-bottom: 76px;
+    padding-bottom: 0;
   }
 
   .logout-btn {
     width: calc(100% - 32px);
     margin-left: auto;
     margin-right: auto;
-    margin-bottom: 16px;
+    margin-top: 16px;
+    margin-bottom: 0;
   }
 
   body.sidebar-open .sidebar {
