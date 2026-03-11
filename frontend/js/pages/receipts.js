@@ -102,28 +102,39 @@ async function loadTransactions() {
     monthWrap.classList.toggle("hidden", currentTab === "RECENT");
   }
 
-  let data;
+  try {
+    let data;
 
-  if (currentTab === "RECENT") {
-    const list = await apiRequest(LEDGER_BASE, "/transactions/recent");
-    data = {
-      content: Array.isArray(list) ? list : [],
-      total_pages: 1,
-      page: 0,
-    };
-  } else {
-    const sourceParam = currentSourceType ? `&source_type=${currentSourceType}` : "";
-    data = await apiRequest(
-      LEDGER_BASE,
-      `/transactions?year=${currentYear}&month=${currentMonth}&page=${currentPage}&size=${pageSize}${sourceParam}`,
-    );
+    if (currentTab === "RECENT") {
+      const list = await apiRequest(LEDGER_BASE, "/transactions/recent");
+      data = {
+        content: Array.isArray(list) ? list : [],
+        total_pages: 1,
+        page: 0,
+      };
+    } else {
+      const sourceParam = currentSourceType ? `&source_type=${currentSourceType}` : "";
+      data = await apiRequest(
+        LEDGER_BASE,
+        `/transactions?year=${currentYear}&month=${currentMonth}&page=${currentPage}&size=${pageSize}${sourceParam}`,
+      );
+    }
+
+    totalPages = Number(data?.total_pages ?? 0);
+    currentPage = Number(data?.page ?? 0);
+
+    renderList(data?.content ?? []);
+    renderPagination();
+  } catch (error) {
+    console.error("Failed to load transactions", error);
+    totalPages = 0;
+    currentPage = 0;
+    const container = document.getElementById("transactionList");
+    if (container) {
+      container.innerHTML = `<div class="empty-state">거래 내역을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.</div>`;
+    }
+    document.querySelector(".pagination")?.remove();
   }
-
-  totalPages = Number(data?.total_pages ?? 0);
-  currentPage = Number(data?.page ?? 0);
-
-  renderList(data?.content ?? []);
-  renderPagination();
 }
 
 function getConfidenceBadge(confidence) {
