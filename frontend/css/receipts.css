@@ -81,6 +81,8 @@
 .tx-grid {
   display: grid;
   gap: 16px;
+  align-content: start;
+  grid-auto-rows: max-content;
   min-height: clamp(420px, 58vh, 720px);
   margin-bottom: 40px;
 }
@@ -252,10 +254,28 @@
   border-color: #111827;
 }
 
+.page-btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+  border-color: #e5e7eb;
+}
+
 .page-btn.active {
   background: #111827;
   color: white;
   border-color: #111827;
+}
+
+.nav-btn {
+  min-width: 56px;
+}
+
+.page-status {
+  display: flex;
+  align-items: center;
+  margin-left: 10px;
+  font-size: 13px;
+  color: #6b7280;
 }
 
 .dots {
@@ -338,6 +358,16 @@
   .tx-card {
     height: auto;
     min-height: 110px;
+  }
+
+  .pagination {
+    justify-content: flex-start;
+  }
+
+  .page-status {
+    width: 100%;
+    margin-left: 0;
+    justify-content: center;
   }
 }
 

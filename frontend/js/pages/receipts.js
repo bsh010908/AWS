@@ -4,6 +4,7 @@ let currentYear;
 let currentMonth;
 let currentPage = 0;
 let totalPages = 0;
+let totalElements = 0;
 let currentSourceType = null;
 let currentTab = "MONTH";
 const pageSize = 10;
@@ -111,6 +112,7 @@ async function loadTransactions() {
         content: Array.isArray(list) ? list : [],
         total_pages: 1,
         page: 0,
+        total_elements: Array.isArray(list) ? list.length : 0,
       };
     } else {
       const sourceParam = currentSourceType ? `&source_type=${currentSourceType}` : "";
@@ -122,6 +124,7 @@ async function loadTransactions() {
 
     totalPages = Number(data?.total_pages ?? 0);
     currentPage = Number(data?.page ?? 0);
+    totalElements = Number(data?.total_elements ?? data?.content?.length ?? 0);
 
     renderList(data?.content ?? []);
     renderPagination();
@@ -129,6 +132,7 @@ async function loadTransactions() {
     console.error("Failed to load transactions", error);
     totalPages = 0;
     currentPage = 0;
+    totalElements = 0;
     const container = document.getElementById("transactionList");
     if (container) {
       container.innerHTML = `<div class="empty-state">거래 내역을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.</div>`;
@@ -211,6 +215,8 @@ function renderPagination() {
 
   const pagination = document.createElement("div");
   pagination.className = "pagination";
+  const prevDisabled = currentPage <= 0;
+  const nextDisabled = currentPage >= totalPages - 1;
 
   const maxVisible = 5;
   let start = Math.max(0, currentPage - 2);
@@ -221,6 +227,12 @@ function renderPagination() {
   }
 
   let html = "";
+
+  html += `
+    <button class="page-btn nav-btn" data-page="${currentPage - 1}" ${prevDisabled ? "disabled" : ""}>
+      이전
+    </button>
+  `;
 
   if (start > 0) {
     html += `<button class="page-btn" data-page="0">1</button>`;
@@ -244,9 +256,18 @@ function renderPagination() {
     html += `<button class="page-btn" data-page="${totalPages - 1}">${totalPages}</button>`;
   }
 
+  html += `
+    <button class="page-btn nav-btn" data-page="${currentPage + 1}" ${nextDisabled ? "disabled" : ""}>
+      다음
+    </button>
+  `;
+
+  html += `<span class="page-status">총 ${totalElements}건 · ${currentPage + 1}/${totalPages} 페이지</span>`;
+
   pagination.innerHTML = html;
   pagination.querySelectorAll(".page-btn").forEach((btn) => {
     btn.onclick = async () => {
+      if (btn.disabled) return;
       currentPage = Number(btn.dataset.page);
       await loadTransactions();
     };
