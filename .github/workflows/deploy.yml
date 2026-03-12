@@ -39,3 +39,15 @@ jobs:
       - name: Push image to ECR
         run: |
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: 54.180.56.115
+          username: ec2-user
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd /home/ec2-user/AWS
+            docker pull 522614117606.dkr.ecr.ap-northeast-2.amazonaws.com/ledger-service:latest
+            docker compose down
+            docker compose up -d
