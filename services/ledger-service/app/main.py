@@ -82,7 +82,8 @@ app.add_middleware(
         "http://127.0.0.1:5500",
         "http://localhost:5500",
         "http://54.180.56.115",
-        "https://y1g931km59.execute-api.ap-northeast-2.amazonaws.com"
+        "https://y1g931km59.execute-api.ap-northeast-2.amazonaws.com",
+        "http://ledger-alb-2037452529.ap-northeast-2.elb.amazonaws.com"
 
     ],
     allow_credentials=True,
