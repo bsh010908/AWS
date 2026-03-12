@@ -31,15 +31,22 @@ jobs:
           aws ecr get-login-password --region $AWS_REGION \
           | docker login --username AWS --password-stdin $ECR_REGISTRY
 
-      - name: Build Docker image
+      # ledger-service build
+      - name: Build ledger-service
         run: |
-          docker build -t $ECR_REPOSITORY ./services/ledger-service
-          docker tag $ECR_REPOSITORY:latest $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          docker build -t ledger-service ./services/ledger-service
+          docker tag ledger-service:latest $ECR_REGISTRY/ledger-service:latest
 
-      - name: Push image to ECR
+      - name: Push ledger-service
         run: |
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          docker push $ECR_REGISTRY/ledger-service:latest
 
+      # frontend build
+      - name: Build frontend
+        run: |
+          docker build -t frontend ./frontend
+
+      # EC2 deploy
       - name: Deploy to EC2
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -49,4 +56,5 @@ jobs:
           script: |
             cd /home/ec2-user/AWS
             docker pull 522614117606.dkr.ecr.ap-northeast-2.amazonaws.com/ledger-service:latest
+            docker-compose down
             docker-compose up -d --build
