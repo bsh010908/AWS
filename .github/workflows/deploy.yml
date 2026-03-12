@@ -33,7 +33,7 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build -t $ECR_REPOSITORY ./ledger-service
+          docker build -t $ECR_REPOSITORY ./services/ledger-service
           docker tag $ECR_REPOSITORY:latest $ECR_REGISTRY/$ECR_REPOSITORY:latest
 
       - name: Push image to ECR
