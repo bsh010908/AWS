@@ -1,30 +1,36 @@
+from fastapi import HTTPException
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
-from app.models.transaction import Transaction
+
 from app.models.category import Category
+from app.models.transaction import Transaction
 from app.schemas.transaction_schema import TransactionCreate
 
 
 def create_transaction(db: Session, user_id: int, data: TransactionCreate):
+    category_obj = None
 
-    # 1️⃣ 카테고리 찾기
-    category_obj = (
-        db.query(Category)
-        .filter(Category.name == data.category)
-        .filter(Category.user_id == user_id)
-        .first()
-    )
+    if data.category_id is not None:
+        category_obj = (
+            db.query(Category)
+            .filter(Category.category_id == data.category_id)
+            .filter(Category.is_active == True)
+            .filter(or_(Category.user_id == None, Category.user_id == user_id))
+            .first()
+        )
+    elif data.category:
+        category_obj = (
+            db.query(Category)
+            .filter(Category.name == data.category)
+            .filter(Category.is_active == True)
+            .filter(or_(Category.user_id == user_id, Category.user_id == None))
+            .order_by(Category.user_id.desc())
+            .first()
+        )
 
     if not category_obj:
-        category_obj = Category(
-            user_id=user_id,
-            name=data.category,
-            type="EXPENSE",
-            is_active=True,
-        )
-        db.add(category_obj)
-        db.flush()
+        raise HTTPException(status_code=400, detail="유효한 카테고리를 선택해주세요.")
 
-    # 2️⃣ 🔥 Transaction만 생성 (Document 생성 제거)
     new_tx = Transaction(
         user_id=user_id,
         amount=data.amount,
@@ -32,8 +38,8 @@ def create_transaction(db: Session, user_id: int, data: TransactionCreate):
         occurred_at=data.occurred_at,
         memo=data.memo,
         merchant_name=data.merchant_name,
-        source_type="MANUAL",   # 🔥 명시
-        document_id=None
+        source_type="MANUAL",
+        document_id=None,
     )
 
     db.add(new_tx)
@@ -51,11 +57,10 @@ def create_transaction(db: Session, user_id: int, data: TransactionCreate):
 
 
 def get_recent_transactions(db: Session, user_id: int):
-
     results = (
         db.query(Transaction)
         .filter(Transaction.user_id == user_id)
-        .order_by(Transaction.created_at.desc())
+        .order_by(Transaction.created_at.desc(), Transaction.occurred_at.desc())
         .limit(5)
         .all()
     )

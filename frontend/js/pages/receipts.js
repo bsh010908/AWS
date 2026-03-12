@@ -542,6 +542,7 @@ async function openCreateTxModal() {
             amount,
             memo: memo || "",
             merchant_name: merchant || null,
+            category_id: Number(categorySelect.value),
             category: categorySelect.options[categorySelect.selectedIndex].text,
             occurred_at: isoFromDateInput(dateValue),
           }),

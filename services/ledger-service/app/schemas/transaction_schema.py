@@ -4,7 +4,8 @@ from datetime import datetime
 
 class TransactionCreate(BaseModel):
     amount: int
-    category: str
+    category: str | None = None
+    category_id: int | None = None
     occurred_at: datetime
     memo: str | None = None 
     merchant_name: str | None = None  

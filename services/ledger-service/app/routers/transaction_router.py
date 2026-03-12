@@ -82,7 +82,7 @@ def get_transactions(
     total_elements = query.count()
 
     transactions = (
-        query.order_by(desc(Transaction.occurred_at))
+        query.order_by(desc(Transaction.created_at), desc(Transaction.occurred_at))
         .offset(page * size)
         .limit(size)
         .all()
@@ -133,7 +133,7 @@ def get_recent_transactions(
         .options(joinedload(Transaction.category))
         .options(joinedload(Transaction.document))
         .filter(Transaction.user_id == user_id)
-        .order_by(desc(Transaction.created_at))
+        .order_by(desc(Transaction.created_at), desc(Transaction.occurred_at))
         .limit(limit)
         .all()
     )
