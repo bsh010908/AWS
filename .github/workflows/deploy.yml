@@ -49,4 +49,4 @@ jobs:
           script: |
             cd /home/ec2-user/AWS
             docker pull 522614117606.dkr.ecr.ap-northeast-2.amazonaws.com/ledger-service:latest
-            docker compose up -d --build
+            docker-compose up -d --build
