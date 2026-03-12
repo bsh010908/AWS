@@ -31,7 +31,6 @@ jobs:
           aws ecr get-login-password --region $AWS_REGION \
           | docker login --username AWS --password-stdin $ECR_REGISTRY
 
-      # ledger-service build
       - name: Build ledger-service
         run: |
           docker build -t ledger-service ./services/ledger-service
@@ -41,12 +40,6 @@ jobs:
         run: |
           docker push $ECR_REGISTRY/ledger-service:latest
 
-      # frontend build
-      - name: Build frontend
-        run: |
-          docker build -t frontend ./frontend
-
-      # EC2 deploy
       - name: Deploy to EC2
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -55,6 +48,11 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             cd /home/ec2-user/AWS
+
             docker pull 522614117606.dkr.ecr.ap-northeast-2.amazonaws.com/ledger-service:latest
+
             docker-compose down
-            docker-compose up -d --build
+
+            docker-compose build frontend
+
+            docker-compose up -d
