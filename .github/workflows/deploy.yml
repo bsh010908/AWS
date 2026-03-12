@@ -7,12 +7,12 @@ on:
 
 jobs:
   deploy:
+
     runs-on: ubuntu-latest
 
     env:
       AWS_REGION: ap-northeast-2
       ECR_REGISTRY: 522614117606.dkr.ecr.ap-northeast-2.amazonaws.com
-      ECR_REPOSITORY: ledger-service
 
     steps:
       - name: Checkout
@@ -48,17 +48,12 @@ jobs:
           script: |
             cd /home/ec2-user/AWS
 
-            echo "Pull latest backend image"
+            git pull origin main
+
             docker pull 522614117606.dkr.ecr.ap-northeast-2.amazonaws.com/ledger-service:latest
 
-            echo "Stop containers"
             docker-compose down
 
-            echo "Rebuild frontend without cache"
             docker-compose build --no-cache frontend
 
-            echo "Start containers"
             docker-compose up -d
-
-            echo "Cleanup unused images"
-            docker image prune -f
