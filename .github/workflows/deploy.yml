@@ -51,7 +51,6 @@ jobs:
 
             git pull origin main
 
-            # 🔥 ECR 로그인 (토큰 만료 방지)
             aws ecr get-login-password --region ap-northeast-2 \
             | docker login --username AWS \
             --password-stdin 522614117606.dkr.ecr.ap-northeast-2.amazonaws.com
