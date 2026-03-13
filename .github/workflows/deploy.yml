@@ -46,12 +46,20 @@ jobs:
           username: ec2-user
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
+
             cd /home/ec2-user/AWS
 
             git pull origin main
 
+            # 🔥 ECR 로그인 (토큰 만료 방지)
+            aws ecr get-login-password --region ap-northeast-2 \
+            | docker login --username AWS \
+            --password-stdin 522614117606.dkr.ecr.ap-northeast-2.amazonaws.com
+
+            # 최신 이미지 가져오기
             docker pull 522614117606.dkr.ecr.ap-northeast-2.amazonaws.com/ledger-service:latest
 
+            # 컨테이너 재시작
             docker-compose down
 
             docker-compose build --no-cache frontend
