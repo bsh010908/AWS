@@ -365,17 +365,9 @@ sequenceDiagram
 
 ## 13) AWS 아키텍처 이미지 영역
 
-```text
-[대표 아키텍처 이미지 삽입 위치]
-- 추천 파일명: docs/images/aws-architecture-final.png
-- 설명: EC2 / VPC / API Gateway / ALB / S3 / RDS / Textract / ECR / CodePipeline / CloudWatch / WAF를 한 장으로 정리한 최종 아키텍처
-```
 
-예시 마크다운:
+![AWS Architecture](images/architecture/aws-architecture.png)
 
-```md
-![AWS Architecture](docs/images/aws-architecture-final.png)
-```
 
 ---
 
@@ -413,5 +405,6 @@ sequenceDiagram
 - 전체 구조 문서: `구조 md/전체 구조정리.md`
 - 운영/모니터링 문서: `구조 md/운영-모니터링 설계서.md`
 - 보안 문서: `구조 md/보안 설계서.md`
+
 
 
