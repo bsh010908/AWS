@@ -405,6 +405,7 @@ sequenceDiagram
 - 전체 구조 문서: `구조 md/전체 구조정리.md`
 - 운영/모니터링 문서: `구조 md/운영-모니터링 설계서.md`
 - 보안 문서: `구조 md/보안 설계서.md`
+- 영상 설명 'https://youtu.be/CDlhe2f-W8U'
 
 
 
